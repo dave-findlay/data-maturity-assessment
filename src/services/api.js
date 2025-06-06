@@ -295,6 +295,7 @@ export const submitAssessment = async (assessmentData) => {
 };
 
 // LLM Integration Example (OpenAI)
+// Updated to use environment variable from Vercel
 export const generateLLMAnalysis = async (userProfile, scores, maturityTier) => {
   const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
 
