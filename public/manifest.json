@@ -1,0 +1,16 @@
+{
+  "short_name": "Data Maturity Assessment",
+  "name": "Data Maturity Self-Assessment Tool",
+  "description": "Discover your organization's data maturity level and receive personalized recommendations",
+  "icons": [
+    {
+      "src": "fuse-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#E0BF70",
+  "background_color": "#ffffff"
+} 

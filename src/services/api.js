@@ -299,7 +299,8 @@ export const generateLLMAnalysis = async (userProfile, scores, maturityTier) => 
   const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
 
   if (!OPENAI_API_KEY) {
-    throw new Error('OpenAI API key is required for analysis generation');
+    console.warn('⚠️ OpenAI API key not found, using mock analysis for demo purposes');
+    return generateMockAnalysis(userProfile, scores, maturityTier);
   }
 
   const prompt = `
@@ -685,4 +686,118 @@ const extractListItems = (text) => {
   }
   
   return items.slice(0, 4); // Limit to 4 items max
+};
+
+// Mock analysis function for demo purposes
+const generateMockAnalysis = (userProfile, scores, maturityTier) => {
+  const companySize = userProfile.companySize || 'mid-size';
+  const industry = userProfile.industry || 'technology';
+  const jobTitle = userProfile.jobTitle || 'Data Professional';
+  
+  // Generate contextual summary based on maturity tier
+  const summaries = {
+    'Ad-hoc': `Your organization is in the early stages of data maturity, operating with informal processes and limited data governance. While this presents challenges, it also offers significant opportunities for improvement. Organizations at this level typically struggle with data silos, inconsistent quality, and reactive decision-making. However, ${companySize} companies in ${industry} often see rapid improvements once they begin implementing structured data practices.`,
+    
+    'Reactive': `Your organization has begun to recognize the importance of data but is still primarily reactive in approach. Basic processes exist but lack consistency and standardization. This is common for ${companySize} organizations in ${industry}, where data initiatives often emerge organically from different departments. The key opportunity lies in transitioning from reactive firefighting to proactive data management.`,
+    
+    'Developing': `Your organization demonstrates solid progress in data maturity with structured processes beginning to take shape. This places you ahead of many ${companySize} companies in ${industry}. While governance frameworks exist, there are still gaps in implementation and consistency across departments. You're well-positioned to make significant strides toward becoming truly data-driven.`,
+    
+    'Managed': `Your organization exhibits strong data maturity with comprehensive governance and reliable processes in place. This positions you favorably compared to other ${companySize} organizations in ${industry}. You're making data-informed decisions consistently and have established good practices across most areas. The focus now should be on optimization and advanced analytics capabilities.`,
+    
+    'Optimized': `Your organization represents best-in-class data maturity with a truly data-driven culture. You're likely among the top performers in ${industry} for ${companySize} companies. Your advanced analytics capabilities and continuous improvement mindset provide significant competitive advantages. The focus should be on maintaining excellence while exploring cutting-edge innovations.`
+  };
+
+  // Generate SWOT based on scores and context
+  const generateSWOT = () => {
+    const swot = {
+      strengths: [],
+      weaknesses: [],
+      opportunities: [],
+      threats: []
+    };
+
+    // Identify top performing dimensions as strengths
+    const dimensionNames = {
+      strategy: 'Strategic Alignment',
+      governance: 'Data Governance',
+      architecture: 'Data Architecture',
+      analytics: 'Analytics Capabilities',
+      team: 'Team & Skills',
+      quality: 'Data Quality',
+      metadata: 'Metadata Management',
+      security: 'Security & Risk Management'
+    };
+
+    const sortedDimensions = Object.entries(scores.dimensions)
+      .sort(([,a], [,b]) => b - a);
+
+    // Top 2 dimensions as strengths
+    for (let i = 0; i < 2 && i < sortedDimensions.length; i++) {
+      const [dim, score] = sortedDimensions[i];
+      swot.strengths.push(`Strong ${dimensionNames[dim]} with score of ${score.toFixed(1)}, indicating well-established practices and processes`);
+    }
+
+    // Bottom 2 dimensions as weaknesses
+    for (let i = sortedDimensions.length - 2; i < sortedDimensions.length; i++) {
+      if (i >= 0) {
+        const [dim, score] = sortedDimensions[i];
+        swot.weaknesses.push(`${dimensionNames[dim]} needs improvement (${score.toFixed(1)}) to support overall data maturity goals`);
+      }
+    }
+
+    // Context-based opportunities
+    if (maturityTier.name === 'Ad-hoc' || maturityTier.name === 'Reactive') {
+      swot.opportunities.push(`Significant potential for quick wins through basic data governance implementation`);
+      swot.opportunities.push(`${industry} sector trends toward data-driven decision making create competitive advantage opportunities`);
+    } else {
+      swot.opportunities.push(`Advanced analytics and AI/ML capabilities to drive innovation in ${industry}`);
+      swot.opportunities.push(`Data monetization opportunities through improved data products and services`);
+    }
+
+    // Context-based threats
+    if (scores.overall < 3) {
+      swot.threats.push(`Competitors with stronger data capabilities may gain market advantages`);
+      swot.threats.push(`Regulatory compliance risks due to inadequate data governance and security measures`);
+    } else {
+      swot.threats.push(`Rapid technological changes requiring continuous adaptation of data infrastructure`);
+      swot.threats.push(`Data privacy regulations becoming increasingly stringent across industries`);
+    }
+
+    return swot;
+  };
+
+  return {
+    summary: summaries[maturityTier.name] || summaries['Developing'],
+    improvements: [], // Legacy field for backward compatibility
+    recommendations: [
+      {
+        title: "Strengthen Data Governance Framework",
+        content: `Establish a formal data governance council with representatives from key business areas. Implement DAMA-aligned policies for data stewardship, quality standards, and access controls. This is particularly important for ${companySize} organizations in ${industry} where data complexity is growing rapidly.`
+      },
+      {
+        title: "Enhance Data Quality Management",
+        content: `Deploy automated data quality monitoring tools and establish data quality metrics aligned with business objectives. Focus on the most critical data assets that directly impact decision-making in your ${industry} operations.`
+      },
+      {
+        title: "Develop Analytics Capabilities",
+        content: `Build self-service analytics capabilities to democratize data access while maintaining governance. Consider implementing modern data stack technologies that align with ${industry} best practices and support your ${companySize} organization's scale.`
+      }
+    ],
+    peerComparison: `Compared to other ${companySize} organizations in ${industry}, your overall score of ${scores.overall.toFixed(1)} places you ${scores.overall >= 3.5 ? 'above average' : scores.overall >= 2.5 ? 'at the industry median' : 'below average but with significant improvement potential'}. Industry leaders in ${industry} typically score 4.0+ across all dimensions, with particular strength in data governance and analytics capabilities.`,
+    nextSteps: [
+      {
+        title: "Phase 1: Foundation (0-3 months)",
+        content: "Establish data governance council, conduct comprehensive data inventory, implement basic data quality monitoring, and define clear data ownership roles across business units."
+      },
+      {
+        title: "Phase 2: Implementation (3-6 months)",
+        content: "Deploy data quality automation tools, establish master data management practices, implement metadata catalog, and launch pilot analytics projects in high-value use cases."
+      },
+      {
+        title: "Phase 3: Optimization (6+ months)",
+        content: "Scale successful analytics initiatives, implement advanced data architecture patterns, establish self-service capabilities, and develop predictive analytics competencies aligned with business strategy."
+      }
+    ],
+    swot: generateSWOT()
+  };
 }; 
