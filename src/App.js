@@ -10,11 +10,12 @@ import { generateLLMAnalysis } from './services/api';
 
 // Main Assessment Component
 function AssessmentApp() {
-  const [currentStep, setCurrentStep] = useState('profile'); // 'profile', 'assessment', 'loading', 'results'
+  const [currentStep, setCurrentStep] = useState('profile'); // 'profile', 'assessment', 'loading', 'results', 'error'
   const [userProfile, setUserProfile] = useState({});
   const [results, setResults] = useState(null);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [analysisInProgress, setAnalysisInProgress] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleProfileSubmit = (profileData) => {
     setUserProfile(profileData);
@@ -32,6 +33,7 @@ function AssessmentApp() {
     setAnalysisInProgress(true);
     setCurrentStep('loading');
     setAnalysisComplete(false);
+    setError(null);
     
     try {
       // Calculate scores
@@ -60,9 +62,24 @@ function AssessmentApp() {
       }, 1000);
     } catch (error) {
       console.error('❌ Error during analysis:', error);
+      setError(error.message);
       setAnalysisInProgress(false);
-      // Could add error handling here
+      setCurrentStep('error');
     }
+  };
+
+  const handleRetryAssessment = () => {
+    setCurrentStep('assessment');
+    setError(null);
+  };
+
+  const handleStartOver = () => {
+    setCurrentStep('profile');
+    setUserProfile({});
+    setResults(null);
+    setError(null);
+    setAnalysisComplete(false);
+    setAnalysisInProgress(false);
   };
 
   const calculateScores = (answers) => {
@@ -141,6 +158,50 @@ function AssessmentApp() {
               console.log('Report requested for:', userProfile.email);
             }}
           />
+        )}
+
+        {currentStep === 'error' && (
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto text-center">
+            <div className="text-red-600 text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Analysis Service Unavailable
+            </h2>
+            <p className="text-gray-600 mb-6">
+              We're unable to generate your personalized analysis at this time. 
+              This may be due to temporary service maintenance or configuration issues.
+            </p>
+            <p className="text-gray-500 text-sm mb-8">
+              Your assessment responses have been recorded. Please try again later or contact support for assistance.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={handleRetryAssessment}
+                className="bg-primary-500 text-white py-3 px-6 rounded-md font-semibold hover:bg-primary-600 transition duration-200"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={handleStartOver}
+                className="bg-gray-500 text-white py-3 px-6 rounded-md font-semibold hover:bg-gray-600 transition duration-200"
+              >
+                Start New Assessment
+              </button>
+            </div>
+            
+            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                <strong>Need immediate assistance?</strong><br/>
+                Contact us directly to discuss your data maturity assessment results.
+              </p>
+              <button
+                onClick={() => window.open('https://calendly.com/dave-findlay', '_blank')}
+                className="mt-3 text-secondary-600 hover:text-secondary-700 font-semibold text-sm"
+              >
+                Schedule a Consultation →
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
