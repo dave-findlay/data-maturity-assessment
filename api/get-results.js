@@ -1,3 +1,5 @@
+import { head, list } from '@vercel/blob';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,17 +21,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing result ID' });
     }
 
-    // Construct the blob URL
-    const blobUrl = `${process.env.BLOB_READ_WRITE_TOKEN ? 'https://' + process.env.VERCEL_URL : 'https://your-domain.vercel.app'}/_vercel/blob/results/${id}.json`;
-    
-    // Fetch from Vercel Blob
-    const response = await fetch(blobUrl);
+    // List blobs to find our file
+    const { blobs } = await list({
+      prefix: `results/${id}.json`,
+      limit: 1
+    });
+
+    if (blobs.length === 0) {
+      return res.status(404).json({ error: 'Results not found or expired' });
+    }
+
+    // Fetch the blob content
+    const response = await fetch(blobs[0].url);
     
     if (!response.ok) {
-      if (response.status === 404) {
-        return res.status(404).json({ error: 'Results not found or expired' });
-      }
-      throw new Error(`Blob fetch failed: ${response.status}`);
+      throw new Error(`Failed to fetch blob: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
