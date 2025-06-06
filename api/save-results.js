@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { put } from '@vercel/blob';
 
 // Generate a short, URL-friendly ID
 function generateResultId() {
@@ -42,8 +42,11 @@ export default async function handler(req, res) {
       id: resultId
     };
 
-    // Store in Vercel KV with expiration (90 days)
-    await kv.setex(`results:${resultId}`, 90 * 24 * 60 * 60, JSON.stringify(dataToStore));
+    // Store in Vercel Blob
+    const blob = await put(`results/${resultId}.json`, JSON.stringify(dataToStore), {
+      access: 'public',
+      addRandomSuffix: false
+    });
 
     // Get the origin from headers or use a default
     const origin = req.headers.origin || req.headers.referer?.split('/').slice(0, 3).join('/') || 'https://your-domain.vercel.app';
@@ -52,7 +55,8 @@ export default async function handler(req, res) {
     res.status(200).json({ 
       success: true, 
       resultId,
-      shareUrl: `${origin}/results/${resultId}`
+      shareUrl: `${origin}/results/${resultId}`,
+      blobUrl: blob.url
     });
 
   } catch (error) {

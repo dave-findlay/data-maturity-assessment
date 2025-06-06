@@ -1,5 +1,3 @@
-import { kv } from '@vercel/kv';
-
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,15 +19,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing result ID' });
     }
 
-    // Retrieve from Vercel KV
-    const storedData = await kv.get(`results:${id}`);
+    // Construct the blob URL
+    const blobUrl = `${process.env.BLOB_READ_WRITE_TOKEN ? 'https://' + process.env.VERCEL_URL : 'https://your-domain.vercel.app'}/_vercel/blob/results/${id}.json`;
     
-    if (!storedData) {
-      return res.status(404).json({ error: 'Results not found or expired' });
+    // Fetch from Vercel Blob
+    const response = await fetch(blobUrl);
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        return res.status(404).json({ error: 'Results not found or expired' });
+      }
+      throw new Error(`Blob fetch failed: ${response.status}`);
     }
 
-    // Parse the stored JSON data
-    const data = typeof storedData === 'string' ? JSON.parse(storedData) : storedData;
+    const data = await response.json();
 
     res.status(200).json({
       success: true,
