@@ -354,7 +354,7 @@ export const generateLLMAnalysis = async (userProfile, scores, maturityTier) => 
 
   // Create the payload that will be sent to OpenAI
   const payload = {
-    model: 'gpt-4',
+    model: 'gpt-4o',
     messages: [
       {
         role: 'system',
