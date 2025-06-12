@@ -46,7 +46,7 @@ const formatText = (text) => {
   return text.replace(/\. /g, '.\n\n').trim();
 };
 
-const ResultsPage = ({ userProfile, results, isSharedView = false }) => {
+const ResultsPage = ({ userProfile, results, isSharedView = false, onSimulateError }) => {
   const [shareUrl, setShareUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
@@ -114,6 +114,52 @@ const ResultsPage = ({ userProfile, results, isSharedView = false }) => {
     setToast(null);
   };
 
+  // TEST FUNCTION - Remove in production
+  const simulateError = async () => {
+    try {
+      // Simulate the error logging function from api.js
+      const generateErrorId = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = 'ERR-';
+        for (let i = 0; i < 6; i++) {
+          result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+      };
+
+      const errorId = generateErrorId();
+      const errorData = {
+        id: errorId,
+        type: 'SIMULATED_TEST_ERROR',
+        error: 'This is a simulated error for testing purposes',
+        rawResponse: 'Test raw response data',
+        cleanedResponse: 'Test cleaned response data',
+        payload: { model: 'test', messages: ['test'] },
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString()
+      };
+
+      const response = await fetch('/api/log-error', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(errorData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        showToast(`Test error logged successfully! Error ID: ${result.errorId}`, 'success');
+        console.log('🧪 Test error logged:', result);
+      } else {
+        showToast('Failed to log test error', 'error');
+      }
+    } catch (error) {
+      console.error('Error in test:', error);
+      showToast('Error during test', 'error');
+    }
+  };
+
   const getScoreColor = (score) => {
     if (score >= 5) return 'text-green-600'; // Green for optimized (5.0)
     if (score >= 4) return 'text-yellow-600'; // Yellow for managed (4.0)
@@ -172,7 +218,7 @@ const ResultsPage = ({ userProfile, results, isSharedView = false }) => {
     if (swot.strengths.length === 0 && swot.weaknesses.length === 0 && 
         swot.opportunities.length === 0 && swot.threats.length === 0) {
       
-      const fullText = results.analysis.summary || results.analysis.recommendations || '';
+      const fullText = String(results.analysis.summary || results.analysis.recommendations || '');
       
       // Extract SWOT sections using regex patterns
       const strengthsMatch = fullText.match(/\*Strengths\*(.*?)(?=\*Weaknesses\*|\*Opportunities\*|\*Threats\*|$)/s);
@@ -216,6 +262,34 @@ const ResultsPage = ({ userProfile, results, isSharedView = false }) => {
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
+      {/* TEST BUTTON - Remove in production */}
+      {!isSharedView && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-sm font-medium text-yellow-800">🧪 Testing Mode</h4>
+              <p className="text-xs text-yellow-700">Test error logging and user experience</p>
+            </div>
+            <div className="space-x-2">
+              <button
+                onClick={simulateError}
+                className="bg-yellow-600 text-white px-3 py-2 rounded-md text-sm font-semibold hover:bg-yellow-700 transition duration-200"
+              >
+                Test Error Logging
+              </button>
+              {onSimulateError && (
+                <button
+                  onClick={() => onSimulateError()}
+                  className="bg-orange-600 text-white px-3 py-2 rounded-md text-sm font-semibold hover:bg-orange-700 transition duration-200"
+                >
+                  Test Error UI
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Enhanced Analysis Section */}
       <div className="bg-white rounded-lg shadow-lg p-8">
         <h3 className="text-xl font-bold text-gray-900 mb-6">

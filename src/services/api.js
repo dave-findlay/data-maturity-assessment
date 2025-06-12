@@ -294,6 +294,50 @@ export const submitAssessment = async (assessmentData) => {
   }
 };
 
+// Helper function to log errors to blob storage for debugging
+const logErrorToBlob = async (errorData) => {
+  try {
+    const errorId = generateErrorId();
+    const timestamp = new Date().toISOString();
+    
+    const errorLog = {
+      id: errorId,
+      timestamp,
+      ...errorData
+    };
+
+    // Save to blob storage
+    const response = await fetch('/api/log-error', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(errorLog)
+    });
+
+    if (response.ok) {
+      console.log(`🐛 Error logged to blob storage: ${errorId}`);
+      return errorId;
+    } else {
+      console.warn('Failed to log error to blob storage');
+      return null;
+    }
+  } catch (logError) {
+    console.warn('Error logging failed:', logError);
+    return null;
+  }
+};
+
+// Generate a short error ID for tracking
+function generateErrorId() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = 'ERR-';
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 // LLM Integration Example (OpenAI)
 // Updated to use environment variable from Vercel
 // Triggering redeploy to pick up corrected API key
@@ -401,8 +445,40 @@ CRITICAL FORMATTING REQUIREMENT: Your response must be ONLY valid JSON. Do not w
       cleanedText = cleanedText.replace(/\s*```$/, '');
     }
     
-    // Parse the cleaned JSON response
-    const analysis = JSON.parse(cleanedText);
+    // Additional JSON cleaning - fix common malformed JSON issues
+    // Fix missing closing brackets in arrays
+    cleanedText = cleanedText.replace(/\]\s*"[a-zA-Z]/g, (match) => {
+      return match.replace(']', '],');
+    });
+    
+    // Fix missing commas between objects
+    cleanedText = cleanedText.replace(/}\s*"[a-zA-Z]/g, (match) => {
+      return match.replace('}', '},');
+    });
+    
+    // Try to validate and fix the JSON structure
+    let analysis;
+    try {
+      analysis = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.warn('First JSON parse attempt failed, trying to fix structure...');
+      
+      // If parsing fails, try more aggressive fixes
+      // This is a fallback for badly malformed JSON
+      try {
+        // Find the last valid closing brace and truncate there
+        const lastBraceIndex = cleanedText.lastIndexOf('}');
+        if (lastBraceIndex > 0) {
+          cleanedText = cleanedText.substring(0, lastBraceIndex + 1);
+          analysis = JSON.parse(cleanedText);
+        } else {
+          throw parseError; // Re-throw original error if we can't fix it
+        }
+      } catch (secondError) {
+        console.error('Failed to parse JSON even after cleanup attempts');
+        throw parseError; // Use original error for better debugging
+      }
+    }
     
     const result = {
       summary: analysis.summary,
@@ -425,22 +501,23 @@ CRITICAL FORMATTING REQUIREMENT: Your response must be ONLY valid JSON. Do not w
     console.error('❌ Failed to parse JSON response:', error);
     console.log('Raw response:', analysisText);
     
-    // Fallback to text parsing if JSON parsing fails
-    const parsedAnalysis = parseLLMResponse(analysisText);
-    return {
-      summary: parsedAnalysis.summary,
-      improvements: parsedAnalysis.improvements,
-      recommendations: parsedAnalysis.recommendations,
-      peerComparison: parsedAnalysis.peerComparison,
-      nextSteps: parsedAnalysis.nextSteps,
-      // Add debug information even in fallback case
-      _debug: {
-        payload: payload,
-        rawResponse: analysisText,
-        timestamp: new Date().toISOString(),
-        fallbackUsed: true
-      }
-    };
+    // Log the error to blob storage for debugging
+    const errorId = await logErrorToBlob({
+      type: 'JSON_PARSE_ERROR',
+      error: error.message,
+      stack: error.stack,
+      rawResponse: analysisText,
+      cleanedResponse: cleanedText,
+      payload: payload,
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Throw a user-friendly error with retry instructions
+    const userError = new Error(`Unable to process analysis results. This appears to be a temporary issue with our AI service. Please try again in a moment.${errorId ? ` (Error ID: ${errorId} for support)` : ''}`);
+    userError.retryable = true;
+    userError.errorId = errorId;
+    throw userError;
   }
 };
 

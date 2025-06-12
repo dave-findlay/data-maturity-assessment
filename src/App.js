@@ -62,7 +62,11 @@ function AssessmentApp() {
       }, 1000);
     } catch (error) {
       console.error('❌ Error during analysis:', error);
-      setError(error.message);
+      setError({
+        message: error.message,
+        retryable: error.retryable || false,
+        errorId: error.errorId || null
+      });
       setAnalysisInProgress(false);
       setCurrentStep('error');
     }
@@ -71,6 +75,8 @@ function AssessmentApp() {
   const handleRetryAssessment = () => {
     setCurrentStep('assessment');
     setError(null);
+    setAnalysisInProgress(false);
+    setAnalysisComplete(false);
   };
 
   const handleStartOver = () => {
@@ -80,6 +86,17 @@ function AssessmentApp() {
     setError(null);
     setAnalysisComplete(false);
     setAnalysisInProgress(false);
+  };
+
+  // TEST FUNCTION - Remove in production
+  const handleSimulateError = () => {
+    const errorId = 'ERR-TEST' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    setError({
+      message: `This is a simulated retryable error for testing the user experience. The error has been logged for debugging purposes. (Test Error ID: ${errorId})`,
+      retryable: true,
+      errorId: errorId
+    });
+    setCurrentStep('error');
   };
 
   const calculateScores = (answers) => {
@@ -157,30 +174,49 @@ function AssessmentApp() {
               // Handle report request
               console.log('Report requested for:', userProfile.email);
             }}
+            onSimulateError={handleSimulateError}
           />
         )}
 
         {currentStep === 'error' && (
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto text-center">
-            <div className="text-red-600 text-6xl mb-4">⚠️</div>
+            <div className={`text-6xl mb-4 ${error?.retryable ? 'text-orange-600' : 'text-red-600'}`}>
+              {error?.retryable ? '⚠️' : '❌'}
+            </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Analysis Service Unavailable
+              {error?.retryable ? 'Analysis Processing Issue' : 'Analysis Service Unavailable'}
             </h2>
             <p className="text-gray-600 mb-6">
-              We're unable to generate your personalized analysis at this time. 
-              This may be due to temporary service maintenance or configuration issues.
-            </p>
-            <p className="text-gray-500 text-sm mb-8">
-              Your assessment responses have been recorded. Please try again later or contact support for assistance.
+              {error?.message || 'We\'re unable to generate your personalized analysis at this time. This may be due to temporary service maintenance or configuration issues.'}
             </p>
             
+            {error?.errorId && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <p className="text-sm text-gray-600">
+                  <strong>Error ID:</strong> <code className="bg-gray-200 px-2 py-1 rounded text-xs font-mono">{error.errorId}</code>
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Please include this ID if contacting support
+                </p>
+              </div>
+            )}
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={handleRetryAssessment}
-                className="bg-primary-500 text-white py-3 px-6 rounded-md font-semibold hover:bg-primary-600 transition duration-200"
-              >
-                Try Again
-              </button>
+              {error?.retryable ? (
+                <button
+                  onClick={handleRetryAssessment}
+                  className="bg-orange-500 text-white py-3 px-6 rounded-md font-semibold hover:bg-orange-600 transition duration-200"
+                >
+                  Try Analysis Again
+                </button>
+              ) : (
+                <button
+                  onClick={handleRetryAssessment}
+                  className="bg-primary-500 text-white py-3 px-6 rounded-md font-semibold hover:bg-primary-600 transition duration-200"
+                >
+                  Try Again
+                </button>
+              )}
               <button
                 onClick={handleStartOver}
                 className="bg-gray-500 text-white py-3 px-6 rounded-md font-semibold hover:bg-gray-600 transition duration-200"

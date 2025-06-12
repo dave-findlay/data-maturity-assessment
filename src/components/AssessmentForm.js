@@ -131,7 +131,7 @@ const AssessmentForm = ({ onSubmit, userProfile }) => {
                 {likertScale.map((option) => (
                   <label
                     key={option.value}
-                    className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all duration-200 ${
+                    className={`cursor-pointer border-2 rounded-lg p-3 text-center transition-all duration-200 select-none ${
                       answers[question.id] === option.value
                         ? 'border-secondary-500 bg-secondary-50 text-secondary-700'
                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -145,8 +145,8 @@ const AssessmentForm = ({ onSubmit, userProfile }) => {
                       onChange={(e) => handleAnswerChange(question.id, e.target.value)}
                       className="sr-only"
                     />
-                    <div className="text-sm font-medium mb-1">{option.value}</div>
-                    <div className="text-xs text-gray-600">{option.label}</div>
+                    <div className="text-sm font-medium mb-1 select-none">{option.value}</div>
+                    <div className="text-xs text-gray-600 select-none">{option.label}</div>
                   </label>
                 ))}
               </div>
