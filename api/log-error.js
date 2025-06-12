@@ -21,8 +21,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing error data' });
     }
 
+    // Create filename with company name prefix if available
+    const companyName = errorData.companyName || 'Unknown-Company';
+    const sanitizedCompanyName = companyName.replace(/[^a-zA-Z0-9-_]/g, '-').substring(0, 50);
+    const filename = `${sanitizedCompanyName}_${errorData.id}.json`;
+
     // Store error log in Vercel Blob
-    const blob = await put(`errors/${errorData.id}.json`, JSON.stringify(errorData, null, 2), {
+    const blob = await put(`errors/${filename}`, JSON.stringify(errorData, null, 2), {
       access: 'public',
       addRandomSuffix: false
     });

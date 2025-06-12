@@ -136,7 +136,8 @@ const ResultsPage = ({ userProfile, results, isSharedView = false, onSimulateErr
         cleanedResponse: 'Test cleaned response data',
         payload: { model: 'test', messages: ['test'] },
         userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        companyName: userProfile.companyName
       };
 
       const response = await fetch('/api/log-error', {
@@ -679,13 +680,6 @@ const ResultsPage = ({ userProfile, results, isSharedView = false, onSimulateErr
         </div>
 
         <div className="max-w-md mx-auto">
-          <button
-            onClick={() => window.open('https://calendly.com/dave-findlay', '_blank')}
-            className="w-full bg-primary-500 text-white py-4 px-6 rounded-md font-bold text-lg hover:bg-primary-600 transition duration-200 mb-4"
-          >
-            Book Your 30-Minute Strategy Consult
-          </button>
-          
           {/* Copy Link Button - Only show for new assessments, not shared views */}
           {!isSharedView && (
             <button
@@ -717,6 +711,13 @@ const ResultsPage = ({ userProfile, results, isSharedView = false, onSimulateErr
               )}
             </button>
           )}
+
+          <button
+            onClick={() => window.open('https://www.fusedata.co/strategy-consult', '_blank')}
+            className="w-full bg-primary-500 text-white py-4 px-6 rounded-md font-bold text-lg hover:bg-primary-600 transition duration-200 mb-4"
+          >
+            Book Your 30-Minute Strategy Consult
+          </button>
           
           <div className="text-center">
             <p className="text-gray-600 text-sm">

@@ -513,7 +513,8 @@ CRITICAL FORMATTING REQUIREMENT: Your response must be ONLY valid JSON. Do not w
       cleanedResponse: cleanedText,
       payload: payload,
       userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      companyName: userProfile.companyName
     });
     
     // Throw a user-friendly error with retry instructions

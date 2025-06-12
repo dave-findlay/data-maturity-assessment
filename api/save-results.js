@@ -42,8 +42,13 @@ export default async function handler(req, res) {
       id: resultId
     };
 
+    // Create filename with company name prefix
+    const companyName = userProfile.companyName || 'Unknown-Company';
+    const sanitizedCompanyName = companyName.replace(/[^a-zA-Z0-9-_]/g, '-').substring(0, 50);
+    const filename = `${sanitizedCompanyName}_${resultId}.json`;
+
     // Store in Vercel Blob
-    const blob = await put(`results/${resultId}.json`, JSON.stringify(dataToStore), {
+    const blob = await put(`results/${filename}`, JSON.stringify(dataToStore), {
       access: 'public',
       addRandomSuffix: false
     });

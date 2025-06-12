@@ -231,7 +231,7 @@ function AssessmentApp() {
                 Contact us directly to discuss your data maturity assessment results.
               </p>
               <button
-                onClick={() => window.open('https://calendly.com/dave-findlay', '_blank')}
+                onClick={() => window.open('https://www.fusedata.co/strategy-consult', '_blank')}
                 className="mt-3 text-secondary-600 hover:text-secondary-700 font-semibold text-sm"
               >
                 Schedule a Consultation →
