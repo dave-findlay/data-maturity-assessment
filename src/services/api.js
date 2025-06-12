@@ -304,102 +304,53 @@ export const generateLLMAnalysis = async (userProfile, scores, maturityTier) => 
     throw new Error('Analysis service is currently unavailable. Please contact support for assistance.');
   }
 
-  const prompt = `
-You are an experienced data strategy advisor with deep expertise in DAMA (Data Management Association) frameworks, DMBOK best practices, and agile data strategy methodologies.
+  // Optimized system message - concise role definition
+  const systemMessage = `You are a senior data strategy consultant specializing in DAMA frameworks and organizational data maturity assessments. Provide executive-level analysis using DAMA knowledge areas. Always respond with valid JSON only, no additional text or formatting.`;
 
-A user has just completed a data maturity self-assessment. Based on their responses and business context, generate a creative, specific, executive-level diagnostic report grounded in DAMA knowledge areas and agile data strategy principles.
+  // Optimized user message - focused on the specific task and data
+  const userMessage = `Analyze this data maturity assessment and generate a comprehensive diagnostic report:
 
-IMPORTANT: Ground all analysis and recommendations in the 11 DAMA Knowledge Areas:
-1. Data Governance
-2. Data Architecture
-3. Data Modeling & Design
-4. Data Storage & Operations
-5. Data Security
-6. Data Integration & Interoperability
-7. Documents & Content Management
-8. Reference & Master Data Management
-9. Data Warehousing & Business Intelligence
-10. Metadata Management
-11. Data Quality
+## Assessment Data:
+- Company: ${userProfile.companySize} employees, ${userProfile.industry || 'Technology'} industry
+- Role: ${userProfile.jobTitle}
+- Maturity Level: ${maturityTier.name} (${scores.overall.toFixed(1)}/5.0)
+- Dimension Scores:
+  • Strategy & Alignment: ${scores.dimensions.strategy?.toFixed(1) || 'N/A'}/5.0
+  • Governance: ${scores.dimensions.governance?.toFixed(1) || 'N/A'}/5.0  
+  • Architecture & Integration: ${scores.dimensions.architecture?.toFixed(1) || 'N/A'}/5.0
+  • Analytics & Decision Enablement: ${scores.dimensions.analytics?.toFixed(1) || 'N/A'}/5.0
+  • Team & Skills: ${scores.dimensions.team?.toFixed(1) || 'N/A'}/5.0
+  • Data Quality & Operations: ${scores.dimensions.quality?.toFixed(1) || 'N/A'}/5.0
+  • Metadata & Documentation: ${scores.dimensions.metadata?.toFixed(1) || 'N/A'}/5.0
+  • Security & Risk Management: ${scores.dimensions.security?.toFixed(1) || 'N/A'}/5.0
 
-CREATIVITY GUIDELINES:
-- Use specific, actionable language rather than generic advice
-- Reference industry-specific challenges and opportunities for ${userProfile.industry || 'their sector'}
-- Incorporate modern data trends (AI/ML, cloud-native, data mesh, etc.) where relevant
+## Requirements:
+- Ground analysis in DAMA's 11 Knowledge Areas (Governance, Architecture, Modeling, Storage, Security, Integration, Content, Master Data, BI, Metadata, Quality)
+- Reference ${userProfile.industry || 'technology'} industry specifics and modern trends (AI/ML, cloud-native, data mesh)
+- Use specific, actionable language with concrete DAMA practices
 - Apply agile data strategy principles (iterative, value-driven, cross-functional)
-- Provide concrete examples and specific DAMA practices
 
-### Input Data:
-- Company Size: ${userProfile.companySize}  
-- Job Title: ${userProfile.jobTitle}  
-- Industry: ${userProfile.industry || 'Not specified'}  
-- Maturity Tier: ${maturityTier.name}  
-- Average Score: ${scores.overall.toFixed(1)}  
-- Dimension Scores:  
-  - Strategy & Alignment: ${scores.dimensions.strategy?.toFixed(1) || 'N/A'}  
-  - Governance: ${scores.dimensions.governance?.toFixed(1) || 'N/A'}  
-  - Architecture & Integration: ${scores.dimensions.architecture?.toFixed(1) || 'N/A'}  
-  - Analytics & Decision Enablement: ${scores.dimensions.analytics?.toFixed(1) || 'N/A'}  
-  - Team & Skills: ${scores.dimensions.team?.toFixed(1) || 'N/A'}  
-  - Data Quality & Ops: ${scores.dimensions.quality?.toFixed(1) || 'N/A'}  
-  - Metadata & Documentation: ${scores.dimensions.metadata?.toFixed(1) || 'N/A'}  
-  - Security & Risk: ${scores.dimensions.security?.toFixed(1) || 'N/A'}
-
-RESPOND ONLY WITH VALID JSON in the following exact structure (no additional text, markdown, or formatting):
-
+## Response Format (JSON only):
 {
-  "summary": "A comprehensive summary of the organization's overall data maturity, describing their tier and what it means in terms of data capability. Reference relevant DAMA knowledge areas and industry-specific context.",
-  "peerComparison": "Comparison with other organizations of similar size and industry, highlighting 2-3 standout areas using specific DAMA terminology and industry benchmarks.",
+  "summary": "Comprehensive maturity analysis with DAMA knowledge areas and industry context",
+  "peerComparison": "Industry benchmark comparison highlighting 2-3 standout areas with DAMA terminology", 
   "swot": {
-    "strengths": [
-      "First strength with specific DAMA reference",
-      "Second strength with specific DAMA reference"
-    ],
-    "weaknesses": [
-      "First weakness with specific DAMA reference", 
-      "Second weakness with specific DAMA reference"
-    ],
-    "opportunities": [
-      "First opportunity with specific DAMA reference",
-      "Second opportunity with specific DAMA reference"
-    ],
-    "threats": [
-      "First threat with specific DAMA reference",
-      "Second threat with specific DAMA reference"
-    ]
+    "strengths": ["strength with DAMA reference", "strength with DAMA reference"],
+    "weaknesses": ["weakness with DAMA reference", "weakness with DAMA reference"],
+    "opportunities": ["opportunity with DAMA reference", "opportunity with DAMA reference"], 
+    "threats": ["threat with DAMA reference", "threat with DAMA reference"]
   },
   "recommendations": [
-    {
-      "title": "Augment Data Governance",
-      "content": "Establish a cross-functional team encompassing all data stakeholders. Initiate a DAMA-aligned governance framework to standardize data handling across the organization."
-    },
-    {
-      "title": "Improve Data Quality",
-      "content": "Implement systems for continuous data monitoring and cleansing. Leverage your team's skillset to automate these processes where possible."
-    },
-    {
-      "title": "Devise a Comprehensive Data Strategy",
-      "content": "Align data initiatives with business goals. Prioritize initiatives based on their potential for immediate value and iteratively expand upon successes."
-    }
+    {"title": "Priority 1", "content": "Specific actionable recommendation"},
+    {"title": "Priority 2", "content": "Specific actionable recommendation"},
+    {"title": "Priority 3", "content": "Specific actionable recommendation"}
   ],
   "nextSteps": [
-    {
-      "title": "Phase 1 (0-3 months)",
-      "content": "Establish data governance council, conduct data inventory assessment, implement basic data quality monitoring tools, and define data ownership roles across key business areas."
-    },
-    {
-      "title": "Phase 2 (3-6 months)", 
-      "content": "Deploy automated data quality processes, establish master data management practices, implement metadata cataloging system, and begin advanced analytics pilot projects."
-    },
-    {
-      "title": "Phase 3 (6+ months)",
-      "content": "Scale successful pilot programs, implement enterprise-wide data architecture, establish self-service analytics capabilities, and develop predictive analytics competencies."
-    }
+    {"title": "Phase 1 (0-3 months)", "content": "Immediate actions"},
+    {"title": "Phase 2 (3-6 months)", "content": "Medium-term initiatives"}, 
+    {"title": "Phase 3 (6+ months)", "content": "Long-term transformation"}
   ]
-}
-
-Respond in a creative, specific tone as if advising a senior data leader. Use concrete examples, specific DAMA practices, and industry-relevant insights. Avoid generic recommendations.
-  `;
+}`;
 
   // Create the payload that will be sent to OpenAI
   const payload = {
@@ -407,11 +358,11 @@ Respond in a creative, specific tone as if advising a senior data leader. Use co
     messages: [
       {
         role: 'system',
-        content: 'You are a data strategy consultant providing professional assessments of organizational data maturity. Always respond with valid JSON only, no additional text or formatting.'
+        content: systemMessage
       },
       {
         role: 'user',
-        content: prompt
+        content: userMessage
       }
     ],
     max_tokens: 1200,
