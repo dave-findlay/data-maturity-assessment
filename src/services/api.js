@@ -401,27 +401,30 @@ RESPOND ONLY WITH VALID JSON in the following exact structure (no additional tex
 Respond in a creative, specific tone as if advising a senior data leader. Use concrete examples, specific DAMA practices, and industry-relevant insights. Avoid generic recommendations.
   `;
 
+  // Create the payload that will be sent to OpenAI
+  const payload = {
+    model: 'gpt-4',
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a data strategy consultant providing professional assessments of organizational data maturity. Always respond with valid JSON only, no additional text or formatting.'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ],
+    max_tokens: 1200,
+    temperature: 0.7
+  };
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a data strategy consultant providing professional assessments of organizational data maturity. Always respond with valid JSON only, no additional text or formatting.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 1200,
-      temperature: 0.7
-    })
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
@@ -435,14 +438,22 @@ Respond in a creative, specific tone as if advising a senior data leader. Use co
     // Parse the JSON response directly
     const analysis = JSON.parse(analysisText);
     
-    return {
+    const result = {
       summary: analysis.summary,
       improvements: [], // Legacy field - keeping for backward compatibility
       recommendations: analysis.recommendations, // Now an array of objects
       peerComparison: analysis.peerComparison,
       nextSteps: analysis.nextSteps, // Now an array of objects
-      swot: analysis.swot // New structured SWOT data
+      swot: analysis.swot, // New structured SWOT data
+      // Add debug information
+      _debug: {
+        payload: payload,
+        rawResponse: analysisText,
+        timestamp: new Date().toISOString()
+      }
     };
+    
+    return result;
   } catch (error) {
     console.error('❌ Failed to parse JSON response:', error);
     console.log('Raw response:', analysisText);
@@ -454,7 +465,14 @@ Respond in a creative, specific tone as if advising a senior data leader. Use co
       improvements: parsedAnalysis.improvements,
       recommendations: parsedAnalysis.recommendations,
       peerComparison: parsedAnalysis.peerComparison,
-      nextSteps: parsedAnalysis.nextSteps
+      nextSteps: parsedAnalysis.nextSteps,
+      // Add debug information even in fallback case
+      _debug: {
+        payload: payload,
+        rawResponse: analysisText,
+        timestamp: new Date().toISOString(),
+        fallbackUsed: true
+      }
     };
   }
 };

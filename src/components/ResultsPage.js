@@ -22,6 +22,112 @@ const Toast = ({ message, type, onClose }) => {
   );
 };
 
+// Debug Component for OpenAI Payload
+function OpenAIDebugPanel({ results, onToast }) {
+  const [isVisible, setIsVisible] = useState(false);
+  
+  if (!results?.analysis?._debug) {
+    return null;
+  }
+
+  const copyPayload = async () => {
+    try {
+      const debugInfo = {
+        timestamp: results.analysis._debug.timestamp,
+        payload: results.analysis._debug.payload,
+        rawResponse: results.analysis._debug.rawResponse,
+        fallbackUsed: results.analysis._debug.fallbackUsed || false
+      };
+      
+      await navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2));
+      onToast('OpenAI payload copied to clipboard!', 'success');
+    } catch (error) {
+      console.error('Failed to copy payload:', error);
+      onToast('Failed to copy payload', 'error');
+    }
+  };
+
+  const copyJustPayload = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(results.analysis._debug.payload, null, 2));
+      onToast('OpenAI request payload copied to clipboard!', 'success');
+    } catch (error) {
+      console.error('Failed to copy payload:', error);
+      onToast('Failed to copy payload', 'error');
+    }
+  };
+
+  return (
+    <div className="mb-6">
+      <button
+        onClick={() => setIsVisible(!isVisible)}
+        className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 transition duration-200 text-sm"
+      >
+        🔍 Debug OpenAI Payload
+      </button>
+      
+      {isVisible && (
+        <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-md">
+          <h3 className="text-lg font-semibold text-blue-800 mb-3">OpenAI API Debug Information</h3>
+          
+          <div className="space-y-4 text-sm">
+            <div>
+              <span className="font-semibold text-blue-800">Timestamp:</span>
+              <span className="ml-2 text-blue-700">
+                {new Date(results.analysis._debug.timestamp).toLocaleString()}
+              </span>
+            </div>
+            
+            {results.analysis._debug.fallbackUsed && (
+              <div className="p-2 bg-yellow-100 border border-yellow-400 rounded">
+                <span className="font-semibold text-yellow-800">⚠️ Note:</span>
+                <span className="ml-2 text-yellow-700">
+                  JSON parsing failed, fallback text parsing was used
+                </span>
+              </div>
+            )}
+            
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-blue-800">OpenAI Request Payload:</span>
+                <button
+                  onClick={copyJustPayload}
+                  className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition duration-200"
+                >
+                  Copy Payload
+                </button>
+              </div>
+              <div className="max-h-48 overflow-y-auto p-3 bg-gray-100 rounded text-xs font-mono text-gray-800">
+                <pre>{JSON.stringify(results.analysis._debug.payload, null, 2)}</pre>
+              </div>
+            </div>
+            
+            <div>
+              <span className="font-semibold text-blue-800">Raw OpenAI Response:</span>
+              <div className="mt-1 max-h-32 overflow-y-auto p-3 bg-gray-100 rounded text-xs font-mono text-gray-800">
+                <pre>{results.analysis._debug.rawResponse}</pre>
+              </div>
+            </div>
+            
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={copyPayload}
+                className="bg-blue-500 text-white px-4 py-2 rounded font-semibold hover:bg-blue-600 transition duration-200 text-sm"
+              >
+                Copy All Debug Info
+              </button>
+            </div>
+          </div>
+          
+          <div className="mt-3 text-xs text-blue-600">
+            ⚠️ This debug panel shows API request details. Remove before production!
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Helper function to format text with proper line breaks and numbered lists
 const formatText = (text) => {
   if (!text) return '';
@@ -221,6 +327,9 @@ const ResultsPage = ({ userProfile, results, isSharedView = false }) => {
         <h3 className="text-xl font-bold text-gray-900 mb-6">
           Comprehensive Data Maturity Assessment
         </h3>
+
+        {/* Debug Panel for OpenAI Payload */}
+        <OpenAIDebugPanel results={results} onToast={showToast} />
 
         {/* Company Name and Submitted By */}
         <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
