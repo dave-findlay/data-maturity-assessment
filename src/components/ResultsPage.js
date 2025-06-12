@@ -32,15 +32,24 @@ function OpenAIDebugPanel({ results, onToast }) {
 
   const copyPayload = async () => {
     try {
+      // Create a safe version of the payload without the API key
+      const safePayload = {
+        model: results.analysis._debug.payload.model,
+        messages: results.analysis._debug.payload.messages,
+        max_tokens: results.analysis._debug.payload.max_tokens,
+        temperature: results.analysis._debug.payload.temperature,
+        note: "API key hidden for security"
+      };
+      
       const debugInfo = {
         timestamp: results.analysis._debug.timestamp,
-        payload: results.analysis._debug.payload,
+        payload: safePayload,
         rawResponse: results.analysis._debug.rawResponse,
         fallbackUsed: results.analysis._debug.fallbackUsed || false
       };
       
       await navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2));
-      onToast('OpenAI payload copied to clipboard!', 'success');
+      onToast('OpenAI debug info copied to clipboard (API key excluded)!', 'success');
     } catch (error) {
       console.error('Failed to copy payload:', error);
       onToast('Failed to copy payload', 'error');
@@ -49,8 +58,17 @@ function OpenAIDebugPanel({ results, onToast }) {
 
   const copyJustPayload = async () => {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(results.analysis._debug.payload, null, 2));
-      onToast('OpenAI request payload copied to clipboard!', 'success');
+      // Create a safe version of the payload without the API key
+      const safePayload = {
+        model: results.analysis._debug.payload.model,
+        messages: results.analysis._debug.payload.messages,
+        max_tokens: results.analysis._debug.payload.max_tokens,
+        temperature: results.analysis._debug.payload.temperature,
+        note: "API key hidden for security"
+      };
+      
+      await navigator.clipboard.writeText(JSON.stringify(safePayload, null, 2));
+      onToast('OpenAI request payload copied (API key excluded)!', 'success');
     } catch (error) {
       console.error('Failed to copy payload:', error);
       onToast('Failed to copy payload', 'error');
@@ -98,7 +116,13 @@ function OpenAIDebugPanel({ results, onToast }) {
                 </button>
               </div>
               <div className="max-h-48 overflow-y-auto p-3 bg-gray-100 rounded text-xs font-mono text-gray-800">
-                <pre>{JSON.stringify(results.analysis._debug.payload, null, 2)}</pre>
+                <pre>{JSON.stringify({
+                  model: results.analysis._debug.payload.model,
+                  messages: results.analysis._debug.payload.messages,
+                  max_tokens: results.analysis._debug.payload.max_tokens,
+                  temperature: results.analysis._debug.payload.temperature,
+                  note: "API key hidden for security"
+                }, null, 2)}</pre>
               </div>
             </div>
             
