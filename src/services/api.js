@@ -501,6 +501,9 @@ CRITICAL FORMATTING REQUIREMENT: Your response must be ONLY valid JSON. Do not w
     console.error('❌ Failed to parse JSON response:', error);
     console.log('Raw response:', analysisText);
     
+    // Initialize cleanedText with a fallback value if not defined
+    const cleanedText = analysisText.trim();
+    
     // Log the error to blob storage for debugging
     const errorId = await logErrorToBlob({
       type: 'JSON_PARSE_ERROR',
@@ -522,6 +525,7 @@ CRITICAL FORMATTING REQUIREMENT: Your response must be ONLY valid JSON. Do not w
 };
 
 // Helper function to parse LLM response into structured sections
+// eslint-disable-next-line no-unused-vars
 const parseLLMResponse = (analysis) => {
   console.log('🔍 Parsing LLM response:', analysis);
   
