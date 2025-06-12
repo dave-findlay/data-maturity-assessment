@@ -5,7 +5,7 @@ import AssessmentForm from './components/AssessmentForm';
 import ResultsPage from './components/ResultsPage';
 import LoadingScreen from './components/LoadingScreen';
 import SharedResultsPage from './components/SharedResultsPage';
-import { assessmentQuestions } from './data/questions';
+import { assessmentQuestions } from './data/assessmentQuestions';
 import { generateLLMAnalysis } from './services/api';
 
 // Main Assessment Component
