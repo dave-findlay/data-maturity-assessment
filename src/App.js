@@ -5,60 +5,8 @@ import AssessmentForm from './components/AssessmentForm';
 import ResultsPage from './components/ResultsPage';
 import LoadingScreen from './components/LoadingScreen';
 import SharedResultsPage from './components/SharedResultsPage';
-import { assessmentQuestions } from './data/assessmentQuestions';
+import { assessmentQuestions } from './data/questions';
 import { generateLLMAnalysis } from './services/api';
-
-// Debug Component for Environment Variables
-function DebugPanel() {
-  const [isVisible, setIsVisible] = useState(false);
-  const openaiApiKey = process.env.REACT_APP_OPENAI_API_KEY;
-
-  return (
-    <div className="mb-6">
-      <button
-        onClick={() => setIsVisible(!isVisible)}
-        className="bg-red-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-red-700 transition duration-200 text-sm"
-      >
-        🐛 Debug Environment Variables
-      </button>
-      
-      {isVisible && (
-        <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-md">
-          <h3 className="text-lg font-semibold text-yellow-800 mb-3">Environment Variable Debug Info</h3>
-          <div className="space-y-2 text-sm">
-            <div>
-              <span className="font-semibold text-yellow-800">OpenAI API Key Status:</span>
-              <span className="ml-2 text-yellow-700">
-                {openaiApiKey ? '✅ Set' : '❌ Not Set'}
-              </span>
-            </div>
-            <div>
-              <span className="font-semibold text-yellow-800">OpenAI API Key Value:</span>
-              <div className="mt-1 p-2 bg-gray-100 rounded text-xs font-mono text-gray-800 break-all">
-                {openaiApiKey || 'undefined'}
-              </div>
-            </div>
-            <div>
-              <span className="font-semibold text-yellow-800">Key Length:</span>
-              <span className="ml-2 text-yellow-700">
-                {openaiApiKey ? openaiApiKey.length : 0} characters
-              </span>
-            </div>
-            <div>
-              <span className="font-semibold text-yellow-800">Environment:</span>
-              <span className="ml-2 text-yellow-700">
-                {process.env.NODE_ENV || 'unknown'}
-              </span>
-            </div>
-          </div>
-          <div className="mt-3 text-xs text-yellow-600">
-            ⚠️ This debug panel shows sensitive information. Remove before production!
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // Main Assessment Component
 function AssessmentApp() {
@@ -184,11 +132,6 @@ function AssessmentApp() {
             Discover your organization's data maturity level and receive personalized recommendations 
             to accelerate your data-driven transformation.
           </p>
-          
-          {/* Debug Panel for troubleshooting environment variables */}
-          <div className="mt-8">
-            <DebugPanel />
-          </div>
         </header>
 
         {currentStep === 'profile' && (

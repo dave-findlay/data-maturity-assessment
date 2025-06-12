@@ -304,8 +304,10 @@ export const generateLLMAnalysis = async (userProfile, scores, maturityTier) => 
     throw new Error('Analysis service is currently unavailable. Please contact support for assistance.');
   }
 
-  // Optimized system message - concise role definition
-  const systemMessage = `You are a senior data strategy consultant specializing in DAMA frameworks and organizational data maturity assessments. Provide executive-level analysis using DAMA knowledge areas. Always respond with valid JSON only, no additional text or formatting.`;
+  // Optimized system message - concise role definition with explicit JSON formatting requirement
+  const systemMessage = `You are a senior data strategy consultant specializing in DAMA frameworks and organizational data maturity assessments. Provide executive-level analysis using DAMA knowledge areas. 
+
+CRITICAL FORMATTING REQUIREMENT: Your response must be ONLY valid JSON. Do not wrap your response in markdown code blocks or include any text outside the JSON object. Start your response directly with { and end with }. No \`\`\`json prefix or \`\`\` suffix.`;
 
   // Optimized user message - focused on the specific task and data
   const userMessage = `Analyze this data maturity assessment and generate a comprehensive diagnostic report:
@@ -386,8 +388,21 @@ export const generateLLMAnalysis = async (userProfile, scores, maturityTier) => 
   const analysisText = data.choices[0].message.content;
 
   try {
-    // Parse the JSON response directly
-    const analysis = JSON.parse(analysisText);
+    // Clean the response text by removing markdown code block formatting
+    let cleanedText = analysisText.trim();
+    
+    // Remove ```json at the beginning
+    if (cleanedText.startsWith('```json')) {
+      cleanedText = cleanedText.replace(/^```json\s*/, '');
+    }
+    
+    // Remove ``` at the end
+    if (cleanedText.endsWith('```')) {
+      cleanedText = cleanedText.replace(/\s*```$/, '');
+    }
+    
+    // Parse the cleaned JSON response
+    const analysis = JSON.parse(cleanedText);
     
     const result = {
       summary: analysis.summary,
@@ -400,6 +415,7 @@ export const generateLLMAnalysis = async (userProfile, scores, maturityTier) => 
       _debug: {
         payload: payload,
         rawResponse: analysisText,
+        cleanedResponse: cleanedText,
         timestamp: new Date().toISOString()
       }
     };
