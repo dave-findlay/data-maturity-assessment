@@ -348,10 +348,21 @@ export const generateLLMAnalysis = async (userProfile, scores, maturityTier) => 
     throw new Error('Analysis service is currently unavailable. Please contact support for assistance.');
   }
 
-  // Optimized system message - concise role definition with explicit JSON formatting requirement
-  const systemMessage = `You are a senior data strategy consultant specializing in DAMA frameworks and organizational data maturity assessments. Provide executive-level analysis using DAMA knowledge areas. 
+  // Optimized system message for function calling
+  const systemMessage = `You are a senior data strategy consultant specializing in DAMA frameworks and organizational data maturity assessments. Provide executive-level analysis using DAMA knowledge areas.
 
-CRITICAL FORMATTING REQUIREMENT: Your response must be ONLY valid JSON. Do not wrap your response in markdown code blocks or include any text outside the JSON object. Start your response directly with { and end with }. No \`\`\`json prefix or \`\`\` suffix.`;
+## Analysis Guidelines:
+- Ground recommendations in DAMA frameworks (Governance, Architecture, Modeling, Storage, Security, Integration, Content, Master Data, BI, Metadata, Quality)
+- Consider organizational context (${userProfile.companySize} company, ${userProfile.jobTitle} perspective)
+- Provide specific next steps with realistic timelines
+- Include both quick wins and strategic initiatives
+- Address compliance and regulatory considerations for ${userProfile.industry || 'technology'} industry
+- Include industry-specific insights for ${userProfile.industry || 'technology'} sector
+- Reference current data trends (AI/ML, cloud-native, data mesh, etc.)
+- Focus on practical implementation guidance
+- Keep content professional but accessible
+
+You will be asked to call a function to provide your analysis in a structured format.`;
 
   // Optimized user message - focused on the specific task and data
   const userMessage = `Analyze this data maturity assessment and generate a comprehensive diagnostic report:
@@ -375,30 +386,13 @@ CRITICAL FORMATTING REQUIREMENT: Your response must be ONLY valid JSON. Do not w
 - Reference ${userProfile.industry || 'technology'} industry specifics and modern trends (AI/ML, cloud-native, data mesh)
 - Use specific, actionable language with concrete DAMA practices
 - Apply agile data strategy principles (iterative, value-driven, cross-functional)
+- Provide 3-5 items for each SWOT category
+- Include 3-4 strategic recommendations with clear titles and detailed content
+- Provide 3 implementation phases (0-3 months, 3-6 months, 6+ months) with specific actions
 
-## Response Format (JSON only):
-{
-  "summary": "Comprehensive maturity analysis with DAMA knowledge areas and industry context",
-  "peerComparison": "Industry benchmark comparison highlighting 2-3 standout areas with DAMA terminology", 
-  "swot": {
-    "strengths": ["strength with DAMA reference", "strength with DAMA reference"],
-    "weaknesses": ["weakness with DAMA reference", "weakness with DAMA reference"],
-    "opportunities": ["opportunity with DAMA reference", "opportunity with DAMA reference"], 
-    "threats": ["threat with DAMA reference", "threat with DAMA reference"]
-  },
-  "recommendations": [
-    {"title": "Priority 1", "content": "Specific actionable recommendation"},
-    {"title": "Priority 2", "content": "Specific actionable recommendation"},
-    {"title": "Priority 3", "content": "Specific actionable recommendation"}
-  ],
-  "nextSteps": [
-    {"title": "Phase 1 (0-3 months)", "content": "Immediate actions"},
-    {"title": "Phase 2 (3-6 months)", "content": "Medium-term initiatives"}, 
-    {"title": "Phase 3 (6+ months)", "content": "Long-term transformation"}
-  ]
-}`;
+Please call the function to provide your structured analysis.`;
 
-  // Create the payload that will be sent to OpenAI
+  // Create the payload that will be sent to OpenAI with Function Calling
   const payload = {
     model: 'gpt-4o',
     messages: [
@@ -411,7 +405,94 @@ CRITICAL FORMATTING REQUIREMENT: Your response must be ONLY valid JSON. Do not w
         content: userMessage
       }
     ],
-    max_tokens: 1200,
+    tools: [{
+      type: "function",
+      function: {
+        name: "provide_data_maturity_analysis",
+        description: "Provide comprehensive data maturity analysis with structured output",
+        parameters: {
+          type: "object",
+          properties: {
+            summary: {
+              type: "string",
+              description: "Executive summary of the data maturity assessment"
+            },
+            peerComparison: {
+              type: "string",
+              description: "Comparison with industry peers and benchmarks"
+            },
+            swot: {
+              type: "object",
+              properties: {
+                strengths: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "List of organizational data strengths"
+                },
+                weaknesses: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "List of data-related weaknesses to address"
+                },
+                opportunities: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "List of opportunities for data improvement"
+                },
+                threats: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "List of potential threats or risks"
+                }
+              },
+              required: ["strengths", "weaknesses", "opportunities", "threats"]
+            },
+            recommendations: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  title: {
+                    type: "string",
+                    description: "Title of the recommendation"
+                  },
+                  content: {
+                    type: "string",
+                    description: "Detailed content of the recommendation"
+                  }
+                },
+                required: ["title", "content"]
+              },
+              description: "List of strategic recommendations"
+            },
+            nextSteps: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  title: {
+                    type: "string",
+                    description: "Title of the next step or phase"
+                  },
+                  content: {
+                    type: "string",
+                    description: "Detailed description of the next step"
+                  }
+                },
+                required: ["title", "content"]
+              },
+              description: "List of recommended next steps or implementation phases"
+            }
+          },
+          required: ["summary", "peerComparison", "swot", "recommendations", "nextSteps"]
+        }
+      }
+    }],
+    tool_choice: {
+      type: "function",
+      function: { name: "provide_data_maturity_analysis" }
+    },
+    max_tokens: 2000,
     temperature: 0.7
   };
 
@@ -429,88 +510,57 @@ CRITICAL FORMATTING REQUIREMENT: Your response must be ONLY valid JSON. Do not w
   }
 
   const data = await response.json();
-  const analysisText = data.choices[0].message.content;
-
+  
   try {
-    // Clean the response text by removing markdown code block formatting
-    let cleanedText = analysisText.trim();
+    // Extract the function call response
+    const message = data.choices[0].message;
     
-    // Remove ```json at the beginning
-    if (cleanedText.startsWith('```json')) {
-      cleanedText = cleanedText.replace(/^```json\s*/, '');
+    // Check if the model used function calling
+    if (!message.tool_calls || !message.tool_calls[0] || !message.tool_calls[0].function) {
+      throw new Error('OpenAI did not return a function call response');
     }
     
-    // Remove ``` at the end
-    if (cleanedText.endsWith('```')) {
-      cleanedText = cleanedText.replace(/\s*```$/, '');
-    }
+    const functionCall = message.tool_calls[0].function;
+    const analysisText = functionCall.arguments;
     
-    // Additional JSON cleaning - fix common malformed JSON issues
-    // Fix missing closing brackets in arrays
-    cleanedText = cleanedText.replace(/\]\s*"[a-zA-Z]/g, (match) => {
-      return match.replace(']', '],');
-    });
+    // Parse the function arguments (guaranteed to be valid JSON by OpenAI)
+    const analysis = JSON.parse(analysisText);
     
-    // Fix missing commas between objects
-    cleanedText = cleanedText.replace(/}\s*"[a-zA-Z]/g, (match) => {
-      return match.replace('}', '},');
-    });
+    console.log('✅ Function calling response received and parsed successfully');
     
-    // Try to validate and fix the JSON structure
-    let analysis;
-    try {
-      analysis = JSON.parse(cleanedText);
-    } catch (parseError) {
-      console.warn('First JSON parse attempt failed, trying to fix structure...');
-      
-      // If parsing fails, try more aggressive fixes
-      // This is a fallback for badly malformed JSON
-      try {
-        // Find the last valid closing brace and truncate there
-        const lastBraceIndex = cleanedText.lastIndexOf('}');
-        if (lastBraceIndex > 0) {
-          cleanedText = cleanedText.substring(0, lastBraceIndex + 1);
-          analysis = JSON.parse(cleanedText);
-        } else {
-          throw parseError; // Re-throw original error if we can't fix it
-        }
-      } catch (secondError) {
-        console.error('Failed to parse JSON even after cleanup attempts');
-        throw parseError; // Use original error for better debugging
-      }
-    }
-    
+    // The response is already structured, so we can use it directly with minimal validation
     const result = {
-      summary: analysis.summary,
+      summary: analysis.summary || 'Analysis summary not available.',
       improvements: [], // Legacy field - keeping for backward compatibility
-      recommendations: analysis.recommendations, // Now an array of objects
-      peerComparison: analysis.peerComparison,
-      nextSteps: analysis.nextSteps, // Now an array of objects
-      swot: analysis.swot, // New structured SWOT data
+      recommendations: analysis.recommendations || [],
+      peerComparison: analysis.peerComparison || 'Peer comparison not available.',
+      nextSteps: analysis.nextSteps || [],
+      swot: {
+        strengths: analysis.swot?.strengths || [],
+        weaknesses: analysis.swot?.weaknesses || [],
+        opportunities: analysis.swot?.opportunities || [],
+        threats: analysis.swot?.threats || []
+      },
       // Add debug information
       _debug: {
         payload: payload,
         rawResponse: analysisText,
-        cleanedResponse: cleanedText,
+        functionName: functionCall.name,
         timestamp: new Date().toISOString()
       }
     };
     
     return result;
   } catch (error) {
-    console.error('❌ Failed to parse JSON response:', error);
-    console.log('Raw response:', analysisText);
-    
-    // Initialize cleanedText with a fallback value if not defined
-    const cleanedText = analysisText.trim();
+    console.error('❌ Failed to process function calling response:', error);
+    console.log('Raw response:', JSON.stringify(data, null, 2));
     
     // Log the error to blob storage for debugging
     const errorId = await logErrorToBlob({
-      type: 'JSON_PARSE_ERROR',
+      type: 'FUNCTION_CALLING_ERROR',
       error: error.message,
       stack: error.stack,
-      rawResponse: analysisText,
-      cleanedResponse: cleanedText,
+      rawResponse: JSON.stringify(data, null, 2),
       payload: payload,
       userAgent: navigator.userAgent,
       timestamp: new Date().toISOString(),
