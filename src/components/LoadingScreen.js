@@ -11,14 +11,15 @@ const steps = [
 const LoadingScreen = ({ analysisComplete = false }) => {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
-  const intervalRefs = useRef({ progress: null, step: null });
+  const [countdown, setCountdown] = useState(20);
+  const intervalRefs = useRef({ progress: null, step: null, countdown: null });
   const startTimeRef = useRef(null);
 
   useEffect(() => {
     // Only initialize if we haven't started yet
     if (!startTimeRef.current) {
       startTimeRef.current = Date.now();
-      console.log('🔄 LoadingScreen initialized');
+      console.log('🔄 LoadingScreen initialized with 20-second timer');
     }
 
     // Clear any existing intervals
@@ -28,8 +29,21 @@ const LoadingScreen = ({ analysisComplete = false }) => {
     if (intervalRefs.current.step) {
       clearInterval(intervalRefs.current.step);
     }
+    if (intervalRefs.current.countdown) {
+      clearInterval(intervalRefs.current.countdown);
+    }
 
-    // Create new intervals and store their IDs
+    // Countdown timer - decreases every second
+    const countdownIntervalId = setInterval(() => {
+      setCountdown(prev => {
+        if (analysisComplete) {
+          return prev; // Stop countdown when analysis is complete
+        }
+        return Math.max(0, prev - 1); // Don't go below 0
+      });
+    }, 1000);
+
+    // Progress bar - fills over 20 seconds
     const progressIntervalId = setInterval(() => {
       setProgress(prev => {
         // If analysis is complete, jump to 100%
@@ -37,43 +51,45 @@ const LoadingScreen = ({ analysisComplete = false }) => {
           return 100;
         }
         
-        // Much slower progress that takes about 15-20 seconds to complete
-        if (prev < 20) {
-          return prev + 1; // Slower initial progress
-        } else if (prev < 60) {
-          return prev + 0.5; // Even slower middle progress
-        } else if (prev < 85) {
-          return prev + 0.3; // Very slow near end
-        } else if (prev < 95) {
-          return prev + 0.1; // Extremely slow final stretch
-        } else {
-          return prev; // Stop at 95% and wait for actual completion
-        }
+        // Calculate progress based on elapsed time (20 seconds total)
+        const elapsed = (Date.now() - startTimeRef.current) / 1000;
+        const calculatedProgress = Math.min((elapsed / 20) * 100, 95); // Stop at 95% unless complete
+        
+        return calculatedProgress;
       });
-    }, 1000); // Update every second
+    }, 100); // Update every 100ms for smooth progress
 
+    // Step progression - change steps every 4 seconds (5 steps over 20 seconds)
     const stepIntervalId = setInterval(() => {
       if (!analysisComplete) {
-        setCurrentStep(prev => (prev + 1) % steps.length);
+        const elapsed = (Date.now() - startTimeRef.current) / 1000;
+        const calculatedStep = Math.min(Math.floor(elapsed / 4), steps.length - 1);
+        setCurrentStep(calculatedStep);
       } else {
         setCurrentStep(steps.length - 1); // Show final step when complete
       }
-    }, 4000); // Change step every 4 seconds (slower)
+    }, 100); // Check every 100ms for smooth transitions
 
     // Store the interval IDs in the ref for potential cleanup elsewhere
     intervalRefs.current.progress = progressIntervalId;
     intervalRefs.current.step = stepIntervalId;
+    intervalRefs.current.countdown = countdownIntervalId;
 
     return () => {
       // Use the stored interval IDs for cleanup
       clearInterval(progressIntervalId);
       clearInterval(stepIntervalId);
+      clearInterval(countdownIntervalId);
     };
   }, [analysisComplete]);
 
-  // Show completion message when analysis is done
+  // Show completion message when analysis is done, or "Rendering" if countdown reaches 0
   const displayProgress = analysisComplete ? 100 : Math.min(progress, 95);
-  const displayMessage = analysisComplete ? 'Analysis complete! Preparing your results...' : steps[currentStep];
+  const displayMessage = analysisComplete 
+    ? 'Analysis complete! Preparing your results...' 
+    : countdown === 0 
+    ? 'Rendering...'
+    : steps[currentStep];
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto text-center">
@@ -89,6 +105,18 @@ const LoadingScreen = ({ analysisComplete = false }) => {
       </div>
 
       <div className="bg-gray-50 rounded-lg p-6 mb-6">
+        {/* Countdown Timer Display */}
+        {!analysisComplete && (
+          <div className="mb-4">
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <div className="w-3 h-3 rounded-full bg-primary-500 animate-pulse"></div>
+              <span className="text-sm font-medium text-gray-700">
+                {countdown === 0 ? 'Rendering...' : `Estimated time: ${countdown}s`}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Current Step Display */}
         <div className="mb-4">
           <div className="flex items-center justify-center space-x-2 mb-2">
@@ -102,9 +130,11 @@ const LoadingScreen = ({ analysisComplete = false }) => {
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
           <div 
-            className={`h-3 rounded-full transition-all duration-1000 ease-out ${
+            className={`h-3 rounded-full transition-all duration-300 ease-out ${
               analysisComplete 
                 ? 'bg-gradient-to-r from-secondary-600 to-secondary-700' 
+                : countdown === 0
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600'
                 : 'bg-gradient-to-r from-secondary-500 to-secondary-600'
             }`}
             style={{ width: `${displayProgress}%` }}
@@ -132,8 +162,11 @@ const LoadingScreen = ({ analysisComplete = false }) => {
               }`}>
                 {step}
               </span>
-              {index === currentStep && !analysisComplete && (
+              {index === currentStep && !analysisComplete && countdown > 0 && (
                 <span className="text-secondary-600">...</span>
+              )}
+              {index < currentStep && !analysisComplete && (
+                <span className="text-secondary-600">✓</span>
               )}
               {analysisComplete && (
                 <span className="text-secondary-600">✓</span>
