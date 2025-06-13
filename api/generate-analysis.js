@@ -223,6 +223,7 @@ Please call the function to provide your structured analysis.`;
     };
 
     // Call OpenAI API
+    console.log('Making OpenAI API call...');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -231,6 +232,7 @@ Please call the function to provide your structured analysis.`;
       },
       body: JSON.stringify(payload)
     });
+    console.log('OpenAI API response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
