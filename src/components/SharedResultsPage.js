@@ -21,7 +21,7 @@ const SharedResultsPage = () => {
           setError(result.error || 'Failed to load results');
         }
       } catch (err) {
-        console.error('Error fetching results:', err);
+  
         setError('Failed to load results');
       } finally {
         setLoading(false);
@@ -124,7 +124,7 @@ const SharedResultsPage = () => {
           results={data.results}
           isSharedView={true}
           onRequestReport={() => {
-            console.log('Report requested from shared view');
+    
           }}
         />
       </div>

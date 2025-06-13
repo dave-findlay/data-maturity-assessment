@@ -25,11 +25,9 @@ function AssessmentApp() {
   const handleAssessmentSubmit = async (answers) => {
     // Prevent multiple calls
     if (analysisInProgress) {
-      console.log('⚠️ Analysis already in progress, skipping...');
       return;
     }
 
-    console.log('🚀 Starting assessment submission...');
     setAnalysisInProgress(true);
     setCurrentStep('loading');
     setAnalysisComplete(false);
@@ -40,12 +38,8 @@ function AssessmentApp() {
       const scores = calculateScores(answers);
       const maturityTier = getMaturityTier(scores.overall);
       
-      console.log('📊 Scores calculated, calling LLM analysis...');
-      
-      // Generate LLM analysis (now using real LLM integration)
+      // Generate LLM analysis (now using secure backend API)
       const analysis = await generateLLMAnalysis(userProfile, scores, maturityTier);
-      
-      console.log('✅ LLM analysis complete, setting results...');
       
       setResults({
         scores,
@@ -61,7 +55,6 @@ function AssessmentApp() {
         setAnalysisInProgress(false);
       }, 1000);
     } catch (error) {
-      console.error('❌ Error during analysis:', error);
       setError({
         message: error.message,
         retryable: error.retryable || false,
@@ -88,16 +81,7 @@ function AssessmentApp() {
     setAnalysisInProgress(false);
   };
 
-  // TEST FUNCTION - Remove in production
-  const handleSimulateError = () => {
-    const errorId = 'ERR-TEST' + Math.random().toString(36).substr(2, 6).toUpperCase();
-    setError({
-      message: `This is a simulated retryable error for testing the user experience. The error has been logged for debugging purposes. (Test Error ID: ${errorId})`,
-      retryable: true,
-      errorId: errorId
-    });
-    setCurrentStep('error');
-  };
+
 
   const calculateScores = (answers) => {
     const dimensionScores = {};
@@ -172,9 +156,7 @@ function AssessmentApp() {
             results={results}
             onRequestReport={() => {
               // Handle report request
-              console.log('Report requested for:', userProfile.email);
             }}
-            onSimulateError={handleSimulateError}
           />
         )}
 

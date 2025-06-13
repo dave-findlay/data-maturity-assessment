@@ -19,7 +19,7 @@ const LoadingScreen = ({ analysisComplete = false }) => {
     // Only initialize if we haven't started yet
     if (!startTimeRef.current) {
       startTimeRef.current = Date.now();
-      console.log('🔄 LoadingScreen initialized with 20-second timer');
+  
     }
 
     // Clear any existing intervals

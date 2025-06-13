@@ -45,6 +45,7 @@ export const submitToAirtable = async (data) => {
 
     return await response.json();
   } catch (error) {
+    // Log error for monitoring (keep for production)
     console.error('Airtable submission error:', error);
     throw error;
   }
@@ -86,6 +87,7 @@ export const submitToSupabase = async (data) => {
 
     return response.status === 201 ? { success: true } : await response.json();
   } catch (error) {
+    // Log error for monitoring (keep for production)
     console.error('Supabase submission error:', error);
     throw error;
   }
@@ -96,6 +98,7 @@ export const sendSlackNotification = async (data) => {
   const SLACK_WEBHOOK_URL = process.env.REACT_APP_SLACK_WEBHOOK_URL;
 
   if (!SLACK_WEBHOOK_URL) {
+    // Configuration warning (keep for production monitoring)
     console.warn('Slack webhook URL not configured');
     return;
   }
@@ -177,6 +180,7 @@ export const sendSlackNotification = async (data) => {
 
     return { success: true };
   } catch (error) {
+    // Log error for monitoring (keep for production)
     console.error('Slack notification error:', error);
     throw error;
   }
@@ -187,6 +191,7 @@ export const sendEmailNotification = async (data) => {
   const EMAIL_WEBHOOK_URL = process.env.REACT_APP_EMAIL_WEBHOOK_URL;
 
   if (!EMAIL_WEBHOOK_URL) {
+    // Configuration warning (keep for production monitoring)
     console.warn('Email webhook URL not configured');
     return;
   }
@@ -237,6 +242,7 @@ export const sendEmailNotification = async (data) => {
 
     return { success: true };
   } catch (error) {
+    // Log error for monitoring (keep for production)
     console.error('Email notification error:', error);
     throw error;
   }
@@ -316,14 +322,14 @@ const logErrorToBlob = async (errorData) => {
     });
 
     if (response.ok) {
-      console.log(`🐛 Error logged to blob storage: ${errorId}`);
+  
       return errorId;
     } else {
-      console.warn('Failed to log error to blob storage');
+  
       return null;
     }
   } catch (logError) {
-    console.warn('Error logging failed:', logError);
+
     return null;
   }
 };
@@ -338,247 +344,59 @@ function generateErrorId() {
   return result;
 }
 
-// LLM Integration Example (OpenAI)
-// Updated to use environment variable from Vercel
-// Triggering redeploy to pick up corrected API key
+// LLM Integration - Now uses secure backend API
 export const generateLLMAnalysis = async (userProfile, scores, maturityTier) => {
-  const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
-
-  if (!OPENAI_API_KEY) {
-    throw new Error('Analysis service is currently unavailable. Please contact support for assistance.');
-  }
-
-  // Optimized system message for function calling
-  const systemMessage = `You are a senior data strategy consultant specializing in DAMA frameworks and organizational data maturity assessments. Provide executive-level analysis using DAMA knowledge areas.
-
-## Analysis Guidelines:
-- Ground recommendations in DAMA frameworks (Governance, Architecture, Modeling, Storage, Security, Integration, Content, Master Data, BI, Metadata, Quality)
-- Consider organizational context (${userProfile.companySize} company, ${userProfile.jobTitle} perspective)
-- Provide specific next steps with realistic timelines
-- Include both quick wins and strategic initiatives
-- Address compliance and regulatory considerations for ${userProfile.industry || 'technology'} industry
-- Include industry-specific insights for ${userProfile.industry || 'technology'} sector
-- Reference current data trends (AI/ML, cloud-native, data mesh, etc.)
-- Focus on practical implementation guidance
-- Keep content professional but accessible
-
-You will be asked to call a function to provide your analysis in a structured format.`;
-
-  // Optimized user message - focused on the specific task and data
-  const userMessage = `Analyze this data maturity assessment and generate a comprehensive diagnostic report:
-
-## Assessment Data:
-- Company: ${userProfile.companySize} employees, ${userProfile.industry || 'Technology'} industry
-- Role: ${userProfile.jobTitle}
-- Maturity Level: ${maturityTier.name} (${scores.overall.toFixed(1)}/5.0)
-- Dimension Scores:
-  • Strategy & Alignment: ${scores.dimensions.strategy?.toFixed(1) || 'N/A'}/5.0
-  • Governance: ${scores.dimensions.governance?.toFixed(1) || 'N/A'}/5.0  
-  • Architecture & Integration: ${scores.dimensions.architecture?.toFixed(1) || 'N/A'}/5.0
-  • Analytics & Decision Enablement: ${scores.dimensions.analytics?.toFixed(1) || 'N/A'}/5.0
-  • Team & Skills: ${scores.dimensions.team?.toFixed(1) || 'N/A'}/5.0
-  • Data Quality & Operations: ${scores.dimensions.quality?.toFixed(1) || 'N/A'}/5.0
-  • Metadata & Documentation: ${scores.dimensions.metadata?.toFixed(1) || 'N/A'}/5.0
-  • Security & Risk Management: ${scores.dimensions.security?.toFixed(1) || 'N/A'}/5.0
-
-## Requirements:
-- Ground analysis in DAMA's 11 Knowledge Areas (Governance, Architecture, Modeling, Storage, Security, Integration, Content, Master Data, BI, Metadata, Quality)
-- Reference ${userProfile.industry || 'technology'} industry specifics and modern trends (AI/ML, cloud-native, data mesh)
-- Use specific, actionable language with concrete DAMA practices
-- Apply agile data strategy principles (iterative, value-driven, cross-functional)
-- Provide 3-5 items for each SWOT category
-- Include 3-4 strategic recommendations with clear titles and detailed content
-- Provide 3 implementation phases (0-3 months, 3-6 months, 6+ months) with specific actions
-
-Please call the function to provide your structured analysis.`;
-
-  // Create the payload that will be sent to OpenAI with Function Calling
-  const payload = {
-    model: 'gpt-4o',
-    messages: [
-      {
-        role: 'system',
-        content: systemMessage
-      },
-      {
-        role: 'user',
-        content: userMessage
-      }
-    ],
-    tools: [{
-      type: "function",
-      function: {
-        name: "provide_data_maturity_analysis",
-        description: "Provide comprehensive data maturity analysis with structured output",
-        parameters: {
-          type: "object",
-          properties: {
-            summary: {
-              type: "string",
-              description: "Executive summary of the data maturity assessment"
-            },
-            peerComparison: {
-              type: "string",
-              description: "Comparison with industry peers and benchmarks"
-            },
-            swot: {
-              type: "object",
-              properties: {
-                strengths: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "List of organizational data strengths"
-                },
-                weaknesses: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "List of data-related weaknesses to address"
-                },
-                opportunities: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "List of opportunities for data improvement"
-                },
-                threats: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "List of potential threats or risks"
-                }
-              },
-              required: ["strengths", "weaknesses", "opportunities", "threats"]
-            },
-            recommendations: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  title: {
-                    type: "string",
-                    description: "Title of the recommendation"
-                  },
-                  content: {
-                    type: "string",
-                    description: "Detailed content of the recommendation"
-                  }
-                },
-                required: ["title", "content"]
-              },
-              description: "List of strategic recommendations"
-            },
-            nextSteps: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  title: {
-                    type: "string",
-                    description: "Title of the next step or phase"
-                  },
-                  content: {
-                    type: "string",
-                    description: "Detailed description of the next step"
-                  }
-                },
-                required: ["title", "content"]
-              },
-              description: "List of recommended next steps or implementation phases"
-            }
-          },
-          required: ["summary", "peerComparison", "swot", "recommendations", "nextSteps"]
-        }
-      }
-    }],
-    tool_choice: {
-      type: "function",
-      function: { name: "provide_data_maturity_analysis" }
-    },
-    max_tokens: 2000,
-    temperature: 0.7
-  };
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  
   try {
-    // Extract the function call response
-    const message = data.choices[0].message;
-    
-    // Check if the model used function calling
-    if (!message.tool_calls || !message.tool_calls[0] || !message.tool_calls[0].function) {
-      throw new Error('OpenAI did not return a function call response');
-    }
-    
-    const functionCall = message.tool_calls[0].function;
-    const analysisText = functionCall.arguments;
-    
-    // Parse the function arguments (guaranteed to be valid JSON by OpenAI)
-    const analysis = JSON.parse(analysisText);
-    
-    console.log('✅ Function calling response received and parsed successfully');
-    
-    // The response is already structured, so we can use it directly with minimal validation
-    const result = {
-      summary: analysis.summary || 'Analysis summary not available.',
-      improvements: [], // Legacy field - keeping for backward compatibility
-      recommendations: analysis.recommendations || [],
-      peerComparison: analysis.peerComparison || 'Peer comparison not available.',
-      nextSteps: analysis.nextSteps || [],
-      swot: {
-        strengths: analysis.swot?.strengths || [],
-        weaknesses: analysis.swot?.weaknesses || [],
-        opportunities: analysis.swot?.opportunities || [],
-        threats: analysis.swot?.threats || []
+    const response = await fetch('/api/generate-analysis', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      // Add debug information
-      _debug: {
-        payload: payload,
-        rawResponse: analysisText,
-        functionName: functionCall.name,
-        timestamp: new Date().toISOString()
-      }
-    };
-    
-    return result;
-  } catch (error) {
-    console.error('❌ Failed to process function calling response:', error);
-    console.log('Raw response:', JSON.stringify(data, null, 2));
-    
-    // Log the error to blob storage for debugging
-    const errorId = await logErrorToBlob({
-      type: 'FUNCTION_CALLING_ERROR',
-      error: error.message,
-      stack: error.stack,
-      rawResponse: JSON.stringify(data, null, 2),
-      payload: payload,
-      userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString(),
-      companyName: userProfile.companyName
+      body: JSON.stringify({
+        userProfile,
+        scores,
+        maturityTier
+      })
     });
-    
-    // Throw a user-friendly error with retry instructions
-    const userError = new Error(`Unable to process analysis results. This appears to be a temporary issue with our AI service. Please try again in a moment.${errorId ? ` (Error ID: ${errorId} for support)` : ''}`);
-    userError.retryable = true;
-    userError.errorId = errorId;
-    throw userError;
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error = new Error(data.error || 'Analysis service unavailable');
+      error.retryable = data.retryable || false;
+      error.errorId = data.errorId || null;
+      throw error;
+    }
+
+    if (!data.success || !data.analysis) {
+      throw new Error('Invalid response from analysis service');
+    }
+
+    return data.analysis;
+  } catch (error) {
+    // If it's already a structured error, re-throw it
+    if (error.retryable !== undefined) {
+      throw error;
+    }
+
+    // Handle network errors
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      const networkError = new Error('Unable to connect to analysis service. Please check your internet connection and try again.');
+      networkError.retryable = true;
+      throw networkError;
+    }
+
+    // Handle other errors
+    const genericError = new Error('Analysis service temporarily unavailable. Please try again in a moment.');
+    genericError.retryable = true;
+    throw genericError;
   }
 };
 
 // Helper function to parse LLM response into structured sections
 // eslint-disable-next-line no-unused-vars
 const parseLLMResponse = (analysis) => {
-  console.log('🔍 Parsing LLM response:', analysis);
+
   
   // Split the response into lines for parsing
   const lines = analysis.split('\n').filter(line => line.trim());
@@ -697,7 +515,7 @@ const parseLLMResponse = (analysis) => {
         break;
       default:
         // Handle any unexpected section
-        console.log('Unexpected section:', currentSection, content);
+
         break;
     }
     tempContent = [];
@@ -771,7 +589,7 @@ const parseLLMResponse = (analysis) => {
     ...swotData.threats.map(item => `⚡ Threat: ${item}`)
   ];
   
-  console.log('📊 Parsed sections:', { summary, improvements, recommendations, peerComparison, nextSteps, swotData });
+
   
   return {
     summary,
