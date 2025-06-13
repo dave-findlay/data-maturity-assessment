@@ -119,11 +119,13 @@ function AssessmentApp() {
         <header className="text-center mb-8">
           <div className="mb-6">
             <div className="flex items-center justify-center mb-4">
-              <img 
-                src="/fuse-logo.png" 
-                alt="Fuse Data Logo" 
-                className="h-12 w-auto"
-              />
+              <a href="https://fusedata.co" target="_blank" rel="noopener noreferrer">
+                <img 
+                  src="/fuse-logo.png" 
+                  alt="Fuse Data Logo" 
+                  className="h-12 w-auto hover:opacity-80 transition duration-200"
+                />
+              </a>
             </div>
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">

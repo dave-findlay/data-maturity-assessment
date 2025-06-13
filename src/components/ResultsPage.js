@@ -218,9 +218,16 @@ const ResultsPage = ({ userProfile, results, isSharedView = false }) => {
 
       {/* Enhanced Analysis Section */}
       <div className="bg-white rounded-lg shadow-lg p-8">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">
           Comprehensive Data Maturity Assessment
         </h3>
+        
+        {/* Disclaimer */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <p className="text-sm text-blue-800">
+            <strong>Disclaimer:</strong> This assessment provides a general indication of your organization's data maturity based on your responses. Results are for informational purposes and should be considered alongside professional consultation for strategic decision-making.
+          </p>
+        </div>
 
         {/* Company Name and Submitted By */}
         <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -566,17 +573,19 @@ const ResultsPage = ({ userProfile, results, isSharedView = false }) => {
       <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <img 
-              src="/fuse-logo.png" 
-              alt="Fuse Data Logo" 
-              className="h-16 w-auto bg-gray-100 rounded-lg p-2"
-            />
+            <a href="https://fusedata.co" target="_blank" rel="noopener noreferrer">
+              <img 
+                src="/fuse-logo.png" 
+                alt="Fuse Data Logo" 
+                className="h-16 w-auto bg-gray-100 rounded-lg p-2 hover:bg-gray-200 transition duration-200"
+              />
+            </a>
           </div>
           <h3 className="text-2xl font-bold mb-4 text-gray-900">
-            Ready to Accelerate Your Data Maturity Journey?
+            Need guidance on achieving your data goals?
           </h3>
           <p className="text-gray-600 text-lg mb-6">
-            Book a strategy consult with Dave Findlay, Founder at Fuse Data, to dive deeper into your results.
+            Book a call Dave Findlay, Founder at Fuse Data, to discuss.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -644,16 +653,13 @@ const ResultsPage = ({ userProfile, results, isSharedView = false }) => {
             Book Your 30-Minute Strategy Consult
           </button>
           
-          <div className="text-center">
-            <p className="text-gray-600 text-sm">
-              Complimentary strategy session • No obligation • Immediate insights
-            </p>
-            {!isSharedView && shareUrl && (
-              <p className="text-gray-500 text-xs mt-2">
+          {!isSharedView && shareUrl && (
+            <div className="text-center mb-4">
+              <p className="text-gray-500 text-xs">
                 💡 Share your results with colleagues or save the link for later
               </p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
