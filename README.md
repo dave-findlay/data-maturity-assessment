@@ -1,6 +1,27 @@
-# Data Maturity Self-Assessment Tool
+# Data Maturity Self-Assessment
 
-A comprehensive React web application that delivers a personalized Data Maturity Self-Assessment tool, functioning as both a lead generator and insight delivery engine.
+A comprehensive React-based application for assessing organizational data maturity levels with AI-powered analysis and personalized recommendations.
+
+## Features
+
+- Interactive assessment questionnaire
+- AI-powered analysis using OpenAI GPT-4
+- Personalized recommendations and next steps
+- Shareable results with unique URLs
+- Professional reporting and insights
+- Secure backend API integration
+
+## Security
+
+- OpenAI API key secured on backend
+- Rate limiting and input validation
+- CORS protection and error handling
+
+## Deployment
+
+Deployed on Vercel with automatic GitHub integration.
+
+<!-- Trigger deployment: 2024-06-13 -->
 
 ## 🚀 Features
 
