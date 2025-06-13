@@ -12,9 +12,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Add debugging
-  console.log('API endpoint called:', req.method);
-  console.log('Environment check - OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
+
 
   // Rate limiting
   const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -52,22 +50,12 @@ export default async function handler(req, res) {
 
     // Get OpenAI API key from server environment (secure)
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-    
-    // Debug environment variables
-    console.log('Environment variables check:');
-    console.log('OPENAI_API_KEY exists:', !!OPENAI_API_KEY);
-    console.log('OPENAI_API_KEY length:', OPENAI_API_KEY ? OPENAI_API_KEY.length : 0);
-    console.log('All env vars:', Object.keys(process.env).filter(key => key.includes('OPENAI')));
 
     if (!OPENAI_API_KEY) {
       console.error('OpenAI API key not configured');
       return res.status(500).json({ 
         error: 'Analysis service is currently unavailable. Please contact support for assistance.',
-        retryable: false,
-        debug: {
-          hasApiKey: false,
-          envKeys: Object.keys(process.env).filter(key => key.includes('OPENAI'))
-        }
+        retryable: false
       });
     }
 
@@ -233,7 +221,6 @@ Please call the function to provide your structured analysis.`;
     };
 
     // Call OpenAI API
-    console.log('Making OpenAI API call...');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -242,7 +229,6 @@ Please call the function to provide your structured analysis.`;
       },
       body: JSON.stringify(payload)
     });
-    console.log('OpenAI API response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -292,18 +278,10 @@ Please call the function to provide your structured analysis.`;
 
   } catch (error) {
     console.error('Error in generate-analysis:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Request body:', JSON.stringify(req.body, null, 2));
     
-    // Return detailed error for debugging (remove in production)
     return res.status(500).json({ 
-      error: 'Analysis service error: ' + error.message,
-      retryable: true,
-      debug: {
-        message: error.message,
-        stack: error.stack,
-        hasApiKey: !!process.env.OPENAI_API_KEY
-      }
+      error: 'Unable to process analysis request. Please try again in a moment.',
+      retryable: true
     });
   }
 } 

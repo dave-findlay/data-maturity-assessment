@@ -32,11 +32,7 @@ export default async function handler(req, res) {
       addRandomSuffix: false
     });
 
-    console.log(`🐛 Error logged: ${errorData.id}`, {
-      type: errorData.type,
-      timestamp: errorData.timestamp,
-      blobUrl: blob.url
-    });
+
 
     res.status(200).json({ 
       success: true, 
