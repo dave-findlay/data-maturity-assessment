@@ -616,50 +616,52 @@ const ResultsPage = ({ userProfile, results, isSharedView = false }) => {
         <div className="max-w-md mx-auto">
           {/* Copy Link Button - Only show for new assessments, not shared views */}
           {!isSharedView && (
-            <button
-              onClick={copyShareUrl}
-              disabled={!shareUrl || saving}
-              className={`w-full py-3 px-6 rounded-md font-semibold text-base transition duration-200 mb-4 ${
-                shareUrl && !saving
-                  ? 'bg-secondary-500 text-white hover:bg-secondary-600'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {saving ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Saving Results...
-                </span>
-              ) : shareUrl ? (
-                <span className="flex items-center justify-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  Copy Link to Your Results
-                </span>
-              ) : (
-                'Preparing Share Link...'
+            <>
+              <button
+                onClick={copyShareUrl}
+                disabled={!shareUrl || saving}
+                className={`w-full py-3 px-6 rounded-md font-semibold text-base transition duration-200 mb-2 ${
+                  shareUrl && !saving
+                    ? 'bg-secondary-500 text-white hover:bg-secondary-600'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {saving ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving Results...
+                  </span>
+                ) : shareUrl ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy Link to Your Results
+                  </span>
+                ) : (
+                  'Preparing Share Link...'
+                )}
+              </button>
+              
+              {shareUrl && (
+                <div className="text-center mb-4">
+                  <p className="text-gray-500 text-xs">
+                    💡 Share your results with colleagues or save the link for later
+                  </p>
+                </div>
               )}
-            </button>
+            </>
           )}
 
           <button
             onClick={() => window.open('https://www.fusedata.co/strategy-consult', '_blank')}
-            className="w-full bg-primary-500 text-white py-4 px-6 rounded-md font-bold text-lg hover:bg-primary-600 transition duration-200 mb-4"
+            className="w-full bg-primary-500 text-white py-4 px-6 rounded-md font-bold text-lg hover:bg-primary-600 transition duration-200"
           >
             Book Your 30-Minute Strategy Consult
           </button>
-          
-          {!isSharedView && shareUrl && (
-            <div className="text-center mb-4">
-              <p className="text-gray-500 text-xs">
-                💡 Share your results with colleagues or save the link for later
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
