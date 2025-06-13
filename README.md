@@ -2,6 +2,8 @@
 
 A comprehensive React-based application for assessing organizational data maturity levels with AI-powered analysis and personalized recommendations.
 
+*Last updated: June 2024*
+
 ## 🔒 Security & Architecture
 
 - **Secure Backend API**: OpenAI API key protected on backend with rate limiting
