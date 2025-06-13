@@ -2,26 +2,14 @@
 
 A comprehensive React-based application for assessing organizational data maturity levels with AI-powered analysis and personalized recommendations.
 
-## Features
+## 🔒 Security & Architecture
 
-- Interactive assessment questionnaire
-- AI-powered analysis using OpenAI GPT-4
-- Personalized recommendations and next steps
-- Shareable results with unique URLs
-- Professional reporting and insights
-- Secure backend API integration
-
-## Security
-
-- OpenAI API key secured on backend
-- Rate limiting and input validation
-- CORS protection and error handling
-
-## Deployment
-
-Deployed on Vercel with automatic GitHub integration.
-
-<!-- Trigger deployment: 2024-06-13 -->
+- **Secure Backend API**: OpenAI API key protected on backend with rate limiting
+- **Production-Ready**: No API keys exposed in frontend code
+- **Rate Limiting**: 5 requests per 15 minutes per IP address
+- **Input Validation**: Comprehensive validation and sanitization
+- **CORS Protection**: Configured for secure cross-origin requests
+- **Error Handling**: Professional error responses without sensitive data exposure
 
 ## 🚀 Features
 
@@ -30,6 +18,7 @@ Deployed on Vercel with automatic GitHub integration.
 - Required fields: Full Name, Job Title, Company Name, Company Size
 - Optional fields: Industry, Email Address
 - Form validation and error handling
+- Updated company size options: "1-10", "11-50", "51-200", "201-500", "500-1000", "1000+"
 
 ### 2. Data Maturity Assessment
 - **8 Key Dimensions** of data maturity:
@@ -58,57 +47,53 @@ Deployed on Vercel with automatic GitHub integration.
   - **4.0-4.4**: Managed
   - **4.5-5.0**: Optimized
 
-### 4. LLM-Generated Analysis
-- Personalized summary based on user profile and scores
-- Key areas for improvement identification
-- Strategic recommendations tailored to job title and company size
-- Peer comparison insights
+### 4. AI-Powered Analysis
+- **OpenAI GPT-4 Integration**: Secure backend API with function calling
+- **Structured Analysis**: Consistent JSON responses with defined schema
+- **Personalized Insights**: Tailored to user profile, job title, and company size
+- **Comprehensive Reports**: Summary, peer comparison, SWOT analysis, recommendations, and next steps
+- **Professional Presentation**: Clean, consultative analysis format
 
 ### 5. Rich Results Visualization
-- Interactive bar and radar charts
+- Interactive bar and radar charts using Recharts
 - Color-coded maturity tier display
 - Comprehensive analysis breakdown
 - Professional, consultative presentation
+- Clickable Fuse Data logos linking to fusedata.co
 
 ### 6. Shareable Results System
-- **Automatic Link Generation**: Results are automatically saved and a shareable link is created
-- **Clean URLs**: Short, professional URLs (e.g., `/results/ABC123XY`) instead of long encoded parameters
-- **Vercel KV Storage**: Secure, fast storage with 90-day expiration for shared results
-- **One-Click Sharing**: Copy link button for easy sharing with stakeholders
-- **Persistent Access**: Shared results remain accessible via the unique link
-- **Professional Presentation**: Shared results display company name and submitter information
+- **Automatic Link Generation**: Results automatically saved with unique URLs
+- **Vercel Blob Storage**: Secure cloud storage with company-prefixed file naming
+- **Clean URLs**: Professional format (e.g., `/results/ABC123XY`)
+- **One-Click Sharing**: Copy link functionality with user feedback
+- **Persistent Access**: Results remain accessible via unique links
+- **Professional Presentation**: Complete assessment results with company branding
 - **Error Handling**: Graceful handling of expired or invalid result links
 
-**How it works:**
-1. User completes assessment and views results
-2. Results are automatically saved to Vercel KV storage
-3. A unique 8-character ID is generated (e.g., `ABC123XY`)
-4. User can copy the shareable link: `https://your-domain.com/results/ABC123XY`
-5. Anyone with the link can view the complete assessment results
-6. Links expire after 90 days for privacy and storage management
-
-### 7. Lead Generation & Follow-up
-- Email capture for detailed PDF reports
-- Consent management for follow-up communications
-- Integration-ready for backend services (Airtable, Supabase)
-- Admin notification system ready
+### 7. Consultation & Lead Generation
+- **Updated Consultation Text**: "Need guidance on achieving your data goals? Book a call Dave Findlay, Founder at Fuse Data, to discuss."
+- **Professional URL**: Links to `https://www.fusedata.co/strategy-consult`
+- **Strategic Positioning**: Positioned below comprehensive analysis
+- **Professional Disclaimer**: Added under main assessment title
+- **Share Messaging**: Optimized placement and wording for better UX
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: React 18, Tailwind CSS
-- **Charts**: Recharts library
-- **Styling**: Tailwind CSS with custom color scheme
-- **Storage**: Vercel KV for shareable results
-- **Routing**: React Router for shared results pages
-- **Build Tool**: Create React App
-- **Deployment Ready**: Vercel/Netlify compatible
+- **Frontend**: React 18 with Create React App
+- **Styling**: Tailwind CSS with custom Fuse Data branding
+- **Charts**: Recharts library for data visualization
+- **Backend**: Vercel Serverless Functions (Node.js)
+- **AI Integration**: OpenAI GPT-4 with Function Calling
+- **Storage**: Vercel Blob Storage for shareable results
+- **Deployment**: Vercel with automatic GitHub integration
+- **Security**: Rate limiting, input validation, CORS protection
 
 ## 📦 Installation & Setup
 
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd data-maturity-assessment
+   cd data-maturity
    ```
 
 2. **Install dependencies**
@@ -118,140 +103,211 @@ Deployed on Vercel with automatic GitHub integration.
 
 3. **Environment Configuration**
    ```bash
-   cp env.example .env
+   cp env.example .env.local
    ```
    
-   **Required for Shareable Results:**
-   - `KV_REST_API_URL`: Your Vercel KV REST API URL
-   - `KV_REST_API_TOKEN`: Your Vercel KV REST API Token
+   **Required Environment Variables:**
+   ```
+   # Backend API (Required for AI analysis)
+   OPENAI_API_KEY=your_openai_api_key_here
    
-   **Optional for Enhanced Features:**
-   - `REACT_APP_OPENAI_API_KEY`: For LLM-generated analysis
-   - `REACT_APP_AIRTABLE_API_KEY` & `REACT_APP_AIRTABLE_BASE_ID`: For lead storage
-   - Other integrations as needed
+   # Vercel Blob Storage (Required for shareable results)
+   BLOB_READ_WRITE_TOKEN=your_vercel_blob_token_here
+   ```
 
-4. **Vercel KV Setup** (Required for shareable results)
+4. **Vercel Setup** (Required for production)
    - Create a Vercel account and project
-   - Add a KV database to your project
-   - Copy the `KV_REST_API_URL` and `KV_REST_API_TOKEN` from your Vercel dashboard
-   - Add these to your `.env` file
+   - Connect your GitHub repository
+   - Add environment variables in Vercel dashboard:
+     - `OPENAI_API_KEY`: Your OpenAI API key
+     - `BLOB_READ_WRITE_TOKEN`: Your Vercel Blob storage token
+   - Deploy automatically via GitHub integration
 
-5. **Start development server**
+5. **Local Development**
    ```bash
    npm start
    ```
+   
+   **Note**: For local development with backend API functionality, you'll need:
+   - Valid OpenAI API key
+   - Vercel CLI for local function testing: `npm i -g vercel`
+   - Run `vercel dev` instead of `npm start` for full functionality
 
 6. **Build for production**
    ```bash
    npm run build
    ```
 
+## 🔧 API Endpoints
+
+### `/api/generate-analysis`
+- **Method**: POST
+- **Purpose**: Generate AI-powered analysis of assessment results
+- **Rate Limit**: 5 requests per 15 minutes per IP
+- **Input Validation**: Comprehensive validation of user data and scores
+- **Response**: Structured JSON with analysis components
+- **Security**: OpenAI API key secured on backend
+
 ## 🎨 Customization
 
 ### Branding
-- Update colors in `tailwind.config.js`
-- Modify the primary color scheme in the `theme.extend.colors` section
-- Replace placeholder branding elements in components
+- Fuse Data branding implemented throughout
+- Custom color scheme in `tailwind.config.js`
+- Clickable logos linking to fusedata.co
+- Professional consultation messaging
 
 ### Assessment Questions
-- Edit questions in `src/data/assessmentQuestions.js`
-- Add or remove dimensions as needed
-- Customize explanations and descriptions
+- Questions defined in `src/data/assessmentQuestions.js`
+- 8 dimensions with multiple questions each
+- Expandable explanations for user guidance
+- Customizable scoring and weighting
 
-### LLM Integration
-- Replace the simulated analysis in `App.js` with actual LLM API calls
-- Integrate with OpenAI, Claude, or other LLM services
-- Customize prompts for different analysis styles
-
-## 🔧 Backend Integration
-
-### Data Storage Options
-1. **Airtable**: Simple setup for lead management
-2. **Supabase**: Full-featured backend with real-time capabilities
-3. **Custom API**: Integrate with existing CRM systems
-
-### Notification Setup
-- Email notifications via SendGrid, Mailgun, or similar
-- Slack webhooks for instant lead alerts
-- Zapier integration for workflow automation
+### AI Analysis
+- OpenAI Function Calling with structured schema
+- Customizable prompts in backend API
+- Consistent JSON response format
+- Professional analysis presentation
 
 ## 🌐 Deployment
 
-### Vercel (Recommended)
-1. Connect your GitHub repository to Vercel
-2. Configure build settings (automatic for Create React App)
-3. Deploy with custom domain
+### Vercel (Production Setup)
+1. **Connect Repository**: Link GitHub repo to Vercel project
+2. **Environment Variables**: Add required variables in Vercel dashboard
+3. **Build Configuration**: Automatic detection for Create React App
+4. **Custom Domain**: Configure custom domain if needed
+5. **Monitoring**: Built-in analytics and error tracking
 
-### Netlify
-1. Connect repository to Netlify
-2. Set build command: `npm run build`
-3. Set publish directory: `build`
-
-### Embedding in Wix
-The application is designed to be embeddable via iframe:
-```html
-<iframe 
-  src="https://your-domain.com" 
-  width="100%" 
-  height="800px" 
-  frameborder="0">
-</iframe>
+### Environment Variables Setup
+```bash
+# In Vercel Dashboard > Settings > Environment Variables
+OPENAI_API_KEY=sk-...
+BLOB_READ_WRITE_TOKEN=vercel_blob_...
 ```
+
+### Vercel Configuration
+- `vercel.json` configured for proper routing
+- Static files (manifest.json, robots.txt, favicon.ico) properly served
+- API routes configured for backend functions
+- PWA manifest and robots.txt included
 
 ## 📱 Mobile Responsiveness
 
 - Fully responsive design using Tailwind CSS
-- Optimized for mobile, tablet, and desktop
+- Optimized for mobile, tablet, and desktop viewports
 - Touch-friendly interface elements
-- Accessible form controls
+- Accessible form controls and navigation
+- Mobile-optimized charts and visualizations
 
-## 🔒 Privacy & Compliance
+## 🔒 Security Features
 
-- GDPR-compliant consent management
-- Optional email collection
-- Clear privacy messaging
-- Data handling transparency
+### Backend Security
+- API key protection (never exposed to frontend)
+- Rate limiting (5 requests per 15 minutes)
+- Input validation and sanitization
+- CORS configuration for secure requests
+- Professional error handling without data exposure
 
-## 🎯 Lead Generation Features
-
-- **Immediate Value**: Instant assessment results
-- **Progressive Disclosure**: Basic results → detailed report offer
-- **Multiple CTAs**: Report request, strategy calls, consultations
-- **Consent Management**: GDPR-compliant follow-up permissions
-
-## 📊 Analytics Integration Ready
-
-- Google Analytics events for form completions
-- Conversion tracking for report requests
-- User journey analytics
-- A/B testing capabilities
+### Data Privacy
+- No sensitive data stored in frontend
+- Secure blob storage with company-prefixed naming
+- Professional error messages without technical details
+- Clean production code without debug information
 
 ## 🚀 Performance Optimizations
 
 - Lazy loading for chart components
-- Optimized bundle size
-- Fast loading animations
+- Optimized bundle size with Create React App
 - Efficient state management
+- Fast loading animations and transitions
+- Vercel edge network for global performance
 
-## 🤝 Contributing
+## 📊 Production Features
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+### Error Handling
+- Comprehensive error boundaries
+- User-friendly error messages
+- Backend error logging for monitoring
+- Graceful degradation for API failures
+
+### Monitoring & Analytics
+- Ready for Google Analytics integration
+- Vercel analytics built-in
+- Error tracking and performance monitoring
+- Conversion tracking capabilities
+
+### PWA Features
+- Web app manifest configured
+- Favicon and app icons included
+- Robots.txt for SEO
+- Mobile-friendly meta tags
+
+## 🎯 Business Features
+
+### Lead Generation
+- Professional consultation positioning
+- Strategic call-to-action placement
+- Fuse Data branding and credibility
+- Share functionality for viral growth
+
+### User Experience
+- Immediate value with instant results
+- Professional analysis presentation
+- Easy sharing with colleagues
+- Mobile-optimized experience
+
+## 🔄 Development Workflow
+
+### Local Development
+```bash
+# Install dependencies
+npm install
+
+# Start development server (frontend only)
+npm start
+
+# Start with backend API functionality
+vercel dev
+```
+
+### Production Deployment
+```bash
+# Build for production
+npm run build
+
+# Deploy to Vercel (automatic via GitHub)
+git push origin main
+```
+
+### Environment Management
+- `env.example` provides template
+- `.env.local` for local development
+- Vercel dashboard for production variables
+- Separate staging and production environments
+
+## 🆘 Troubleshooting
+
+### Common Issues
+1. **API Key Errors**: Ensure `OPENAI_API_KEY` is set in Vercel dashboard
+2. **Blob Storage Issues**: Verify `BLOB_READ_WRITE_TOKEN` is configured
+3. **Rate Limiting**: Wait 15 minutes if rate limit exceeded
+4. **Build Errors**: Check Node.js version compatibility
+
+### Debug Mode
+- Check Vercel function logs for backend errors
+- Use browser dev tools for frontend debugging
+- Monitor network requests for API issues
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🆘 Support
+## 🤝 Support
 
 For questions, issues, or customization requests:
 - Create an issue in the repository
 - Contact the development team
-- Check the documentation wiki
+- Check Vercel deployment logs for production issues
 
 ---
 
-**Built with ❤️ for data professionals seeking to understand and improve their organization's data maturity.** 
+**Built with ❤️ by Fuse Data for organizations seeking to understand and improve their data maturity.** 
