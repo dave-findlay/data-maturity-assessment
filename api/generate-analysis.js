@@ -12,6 +12,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Add debugging
+  console.log('API endpoint called:', req.method);
+  console.log('Environment check - OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
+
   // Rate limiting
   const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   const now = Date.now();
@@ -276,38 +280,18 @@ Please call the function to provide your structured analysis.`;
 
   } catch (error) {
     console.error('Error in generate-analysis:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Request body:', JSON.stringify(req.body, null, 2));
     
-    // Log error to blob storage for debugging
-    try {
-      const errorId = 'ERR-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-      const errorData = {
-        id: errorId,
-        type: 'ANALYSIS_GENERATION_ERROR',
-        error: error.message,
+    // Return detailed error for debugging (remove in production)
+    return res.status(500).json({ 
+      error: 'Analysis service error: ' + error.message,
+      retryable: true,
+      debug: {
+        message: error.message,
         stack: error.stack,
-        timestamp: new Date().toISOString(),
-        userAgent: req.headers['user-agent'],
-        companyName: req.body?.userProfile?.companyName
-      };
-
-      // Save error log
-      await fetch(`${req.headers.origin || 'http://localhost:3000'}/api/log-error`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(errorData)
-      });
-
-      return res.status(500).json({ 
-        error: 'Unable to process analysis request. Please try again in a moment.',
-        retryable: true,
-        errorId: errorId
-      });
-    } catch (logError) {
-      console.error('Failed to log error:', logError);
-      return res.status(500).json({ 
-        error: 'Analysis service temporarily unavailable. Please try again later.',
-        retryable: true
-      });
-    }
+        hasApiKey: !!process.env.OPENAI_API_KEY
+      }
+    });
   }
 } 
