@@ -52,12 +52,22 @@ export default async function handler(req, res) {
 
     // Get OpenAI API key from server environment (secure)
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    
+    // Debug environment variables
+    console.log('Environment variables check:');
+    console.log('OPENAI_API_KEY exists:', !!OPENAI_API_KEY);
+    console.log('OPENAI_API_KEY length:', OPENAI_API_KEY ? OPENAI_API_KEY.length : 0);
+    console.log('All env vars:', Object.keys(process.env).filter(key => key.includes('OPENAI')));
 
     if (!OPENAI_API_KEY) {
       console.error('OpenAI API key not configured');
       return res.status(500).json({ 
         error: 'Analysis service is currently unavailable. Please contact support for assistance.',
-        retryable: false
+        retryable: false,
+        debug: {
+          hasApiKey: false,
+          envKeys: Object.keys(process.env).filter(key => key.includes('OPENAI'))
+        }
       });
     }
 
