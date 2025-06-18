@@ -27,8 +27,8 @@
       "source": "/(.*)",
       "headers": [
         {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://fusedata.co https://www.fusedata.co"
         },
         {
           "key": "X-Content-Type-Options",
